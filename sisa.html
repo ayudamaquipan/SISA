@@ -1,0 +1,2865 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Supervisión - Mantenimiento Preventivo</title>
+    
+    <!-- Librería para exportar a Excel (Con soporte de estilos) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.min.js"></script>
+    
+    <!-- Librerías para generar Informes PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0f172a; 
+            --secondary: #3b82f6; 
+            --success: #10b981; 
+            --background: #f8fafc; 
+            --surface: #ffffff; 
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            overflow: hidden; 
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        header h1 { margin: 0; font-size: 1.3rem; font-weight: 600; letter-spacing: -0.5px; }
+        header p { margin: 4px 0 0 0; font-size: 0.85rem; color: #cbd5e1; }
+
+        .container {
+            width: 98%; 
+            max-width: none;
+            margin: 20px auto;
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+
+        /* --- ESTILOS DEL LOGIN --- */
+        #loginContainer {
+            width: 100%; max-width: 400px; margin: 80px auto; 
+            background: var(--surface); padding: 30px; border-radius: 10px; 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border: 1px solid var(--border);
+        }
+        #loginContainer h2 { margin-top: 0; color: var(--primary); text-align: center; }
+        .login-btn {
+            width: 100%; background: var(--secondary); color: white; border: none; 
+            padding: 12px; border-radius: 6px; font-weight: 600; cursor: pointer; 
+            font-size: 1rem; margin-top: 10px; transition: 0.2s;
+        }
+        .login-btn:hover { background: #2563eb; }
+
+        /* --- PESTAÑAS (TABS) --- */
+        .tabs-container { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { background: #e2e8f0; color: #475569; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; }
+        .tab-btn:hover { background: #cbd5e1; }
+        .tab-btn.active { background: var(--secondary); color: white; box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3); }
+
+        .control-panel {
+            background-color: var(--surface); padding: 16px 24px; border-radius: 10px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); display: flex; flex-wrap: wrap; gap: 20px;
+            align-items: flex-end; margin-bottom: 20px; border: 1px solid var(--border);
+        }
+
+        .control-group { display: flex; flex-direction: column; gap: 6px; }
+        .control-group label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
+
+        select, input[type="file"], .search-input {
+            padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); font-family: 'Inter', sans-serif;
+            font-size: 0.9rem; background-color: var(--background); color: var(--text-main); transition: border-color 0.2s;
+        }
+
+        .search-input { min-width: 250px; background-color: white; }
+        .search-input:focus { outline: none; border-color: var(--secondary); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
+
+        select {
+            cursor: pointer; min-width: 180px; appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 10px center;
+        }
+
+        .btn-action { color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 0.9rem; transition: 0.2s; }
+        .btn-clear { background-color: #ef4444; margin-left: auto; }
+        .btn-clear:hover { background-color: #dc2626; }
+        .btn-logout { background-color: #64748b; }
+        .btn-logout:hover { background-color: #475569; }
+
+        .table-container {
+            background-color: var(--surface); border-radius: 10px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid var(--border);
+            max-height: calc(100vh - 280px); overflow-y: auto; overflow-x: auto; 
+        }
+
+        .table-container::-webkit-scrollbar { width: 10px; height: 12px; }
+        .table-container::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+        .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; border: 2px solid #f1f5f9; }
+        .table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 1550px; } 
+        th { background-color: var(--background); color: var(--text-muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; padding: 12px; border-bottom: 2px solid var(--border); position: sticky; top: 0; z-index: 10; white-space: nowrap; box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1); }
+        td { padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 0.85rem; vertical-align: middle; }
+        tr:hover td { background-color: #f1f5f9; }
+
+        .centrado { text-align: center; }
+        .fw-bold { font-weight: 600; color: var(--primary); }
+
+        .input-manual { padding: 6px; border: 1px solid var(--border); border-radius: 6px; font-family: 'Inter', sans-serif; font-size: 0.85rem; width: 110px; min-height: 32px; box-sizing: border-box; background-color: #fafafa; resize: vertical; transition: all 0.2s; }
+        .input-obs { width: 160px; }
+        .input-manual:focus { outline: none; border-color: var(--secondary); background-color: white; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
+
+        .btn-ficha { background-color: #e2e8f0; color: var(--primary); border: none; padding: 6px 10px; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: 0.2s; white-space: nowrap; }
+        .btn-ficha:hover { background-color: #cbd5e1; }
+        .btn-ficha-blue { background-color: var(--secondary); color: white; padding: 4px 8px; font-size: 0.75rem; border-radius: 4px; box-shadow: 0 2px 4px rgba(59,130,246,0.2); }
+        .btn-ficha-blue:hover { background-color: #2563eb; }
+
+        .toggle-switch { position: relative; display: inline-block; width: 36px; height: 20px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        input:checked + .slider { background-color: var(--success); }
+        input:checked + .slider:before { transform: translateX(16px); }
+
+        /* --- DASHBOARD KPIs & BADGES --- */
+        .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .kpi-card { background: var(--surface); padding: 15px 20px; border-radius: 10px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .kpi-card.b-blue { border-left: 4px solid var(--secondary); }
+        .kpi-card.b-yellow { border-left: 4px solid #f59e0b; }
+        .kpi-card.b-green { border-left: 4px solid var(--success); }
+        .kpi-card.b-indigo { border-left: 4px solid #4f46e5; }
+        .kpi-title { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 5px; }
+        .kpi-value { font-size: 1.8rem; font-weight: 700; color: var(--primary); }
+
+        .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; display: inline-block; }
+        .badge-pending { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+        .badge-oc { background: #e0e7ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        .badge-done { background: #d1fae5; color: #047857; border: 1px solid #a7f3d0; }
+        
+        /* --- BADGES DE ESTADO DE EQUIPOS --- */
+        .badge-op { background: #d1fae5; color: #047857; border: 1px solid #a7f3d0; } 
+        .badge-obs { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; } 
+        .badge-fs { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; } 
+
+        /* --- MODALES --- */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(3px); }
+        .modal-content { background: var(--surface); padding: 24px; border-radius: 10px; width: 90%; max-width: 650px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); display: flex; flex-direction: column; gap: 16px; animation: fadeIn 0.2s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .modal-header { font-size: 1.2rem; font-weight: 700; color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 8px;}
+        .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid var(--border); }
+        .modal-grid div { font-size: 0.9rem; }
+        .modal-grid strong { color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; display: block; margin-bottom: 2px; }
+
+        .modal-field { display: flex; flex-direction: column; gap: 6px; }
+        .modal-field label { font-weight: 600; color: var(--text-main); font-size: 0.85rem; }
+        .modal-textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-family: 'Inter', sans-serif; font-size: 0.9rem; resize: vertical; background-color: #fafafa; box-sizing: border-box; }
+        
+        .modal-toggles { display: flex; gap: 15px; padding: 8px 0; flex-wrap: wrap; justify-content: space-between; }
+        .modal-toggles .toggle-wrap { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--text-main); font-size: 0.85rem; }
+
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 5px; }
+        .btn-modal { padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; font-size: 0.9rem; transition: 0.2s; }
+        .btn-cancel { background: #e2e8f0; color: #475569; }
+        .btn-cancel:hover { background: #cbd5e1; }
+        .btn-save { background: var(--secondary); color: white; }
+        .btn-save:hover { background: #2563eb; }
+
+        .empty-state { padding: 40px; text-align: center; color: var(--text-muted); font-size: 0.9rem; }
+
+        /* --- MODAL DE EQUIPOS --- */
+        .equipos-list { display: flex; flex-direction: column; gap: 12px; max-height: 50vh; overflow-y: auto; margin-top: 15px; padding-right: 5px; }
+        .equipos-list::-webkit-scrollbar { width: 6px; }
+        .equipos-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
+
+        .equipo-card-btn { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 14px; display: flex; justify-content: space-between; align-items: center; font-weight: 700; color: var(--primary); cursor: pointer; transition: all 0.2s ease; }
+        .equipo-card-btn:hover { background: #f1f5f9; transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .equipo-summary-icon { font-size: 0.8rem; color: var(--secondary); }
+
+        .btn-remove { background: #ef4444; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: 0.2s; }
+        .btn-remove:hover { background: #dc2626; }
+        .equipo-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        .equipo-field { display: flex; flex-direction: column; gap: 6px; }
+        .equipo-field label { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+        
+        .equipo-input, .equipo-textarea { padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.85rem; font-family: 'Inter', sans-serif; background: white; width: 100%; box-sizing: border-box; transition: 0.2s; }
+        .equipo-input:focus, .equipo-textarea:focus { outline: none; border-color: var(--secondary); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
+        .equipo-textarea { resize: vertical; min-height: 50px; }
+
+        .add-equipo-container { display: flex; gap: 8px; margin-top: 10px; }
+        .btn-add { background: var(--success); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; }
+        .btn-add:hover { background: #059669; }
+        .btn-equipos { background-color: #f59e0b; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: 0.2s; white-space: nowrap; margin-left: 5px; }
+        .btn-equipos:hover { background-color: #d97706; }
+
+        /* --- COTIZACIONES DESPLEGABLES DENTRO DEL EQUIPO --- */
+        .cot-section { margin-top: 5px; border-top: 1px dashed #cbd5e1; padding-top: 10px; }
+        details.cot-details { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 8px; transition: all 0.3s ease; }
+        details.cot-details > summary { padding: 10px; display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: var(--primary); cursor: pointer; list-style: none; font-size: 0.85rem; user-select: none; }
+        details.cot-details > summary::-webkit-details-marker { display: none; }
+        details.cot-details > summary:hover { background: #f1f5f9; border-radius: 6px; }
+        details.cot-details[open] > summary { border-bottom: 1px dashed #cbd5e1; border-radius: 6px 6px 0 0; }
+        .cot-details-content { padding: 12px; background: #ffffff; border-radius: 0 0 6px 6px; border-top: none; }
+        .cot-grid-info { display: grid; grid-template-columns: 1fr 100px 130px auto; gap: 8px; align-items: center; margin-bottom: 8px; }
+        .cot-grid-checks { display: flex; gap: 15px; font-weight: 600; color: var(--text-main); font-size: 0.75rem; align-items: center; background: #f8fafc; padding: 8px 10px; border-radius: 4px; border: 1px solid #e2e8f0; flex-wrap: wrap; margin-top: 8px; }
+
+        /* --- ESTILOS DEL HISTORIAL DE EQUIPOS --- */
+        .historial-section { margin-top: 10px; border-top: 1px dashed #cbd5e1; padding-top: 10px; }
+        .historial-title { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
+        .historial-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+        .historial-item { background: #f8fafc; border: 1px solid #e2e8f0; padding: 8px; border-radius: 6px; font-size: 0.8rem; display: flex; flex-direction: column; gap: 4px; }
+        .historial-item-header { display: flex; justify-content: space-between; font-weight: 600; color: var(--primary); }
+        .btn-del-hist { color: #ef4444; cursor: pointer; font-size: 0.75rem; border: none; background: none; padding: 0; font-weight: bold; }
+        .btn-del-hist:hover { text-decoration: underline; }
+        .add-hist-grid { display: grid; grid-template-columns: 110px 130px 1fr auto; gap: 6px; align-items: start; }
+        .btn-add-hist { background: var(--secondary); color: white; border: none; padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: 0.2s; }
+        .btn-add-hist:hover { background: #2563eb; }
+        
+        @media (max-width: 650px) {
+            .add-hist-grid { grid-template-columns: 1fr; }
+            .cot-grid-info { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div>
+        <h1>Supervisión Técnica Nacional</h1>
+        <p>Panel de Control de Servicios y Mantenimientos en Terreno</p>
+    </div>
+    <button id="btnLogout" class="btn-action btn-logout" onclick="cerrarSesion()" style="display: none;">Cerrar Sesión</button>
+</header>
+
+<div id="loginContainer">
+    <h2>Iniciar Sesión</h2>
+    <div class="control-group" style="margin-bottom: 15px;">
+        <label>Correo Electrónico</label>
+        <input type="email" id="txtEmail" class="search-input" style="width: 100%; box-sizing: border-box;" placeholder="usuario@correo.com">
+    </div>
+    <div class="control-group" style="margin-bottom: 20px;">
+        <label>Contraseña</label>
+        <input type="password" id="txtPassword" class="search-input" style="width: 100%; box-sizing: border-box;" placeholder="******">
+    </div>
+    <button onclick="iniciarSesion()" class="login-btn">Ingresar al Panel</button>
+    <p id="loginError" style="color: #ef4444; font-size: 0.85rem; margin-top: 10px; display: none; text-align: center;">Credenciales incorrectas.</p>
+</div>
+
+<div class="container" id="mainContainer" style="display: none;">
+    
+    <!-- PESTAÑAS DE NAVEGACIÓN -->
+    <div class="tabs-container">
+        <button id="tabBtnPanel" class="tab-btn active" onclick="cambiarVista('panel')">📊 Panel Principal</button>
+        <button id="tabBtnDash" class="tab-btn" onclick="cambiarVista('dashboard')">📈 Dashboard Cotizaciones</button>
+        <button id="tabBtnEquipos" class="tab-btn" onclick="cambiarVista('dashboardEquipos')">🛠️ Dashboard Equipos</button>
+        <button id="tabBtnLocales" class="tab-btn" onclick="cambiarVista('locales')">🏪 Gestión de Locales</button>
+    </div>
+
+    <!-- VISTA 1: PANEL PRINCIPAL -->
+    <div id="vistaPanel">
+        <div class="control-panel">
+            <div class="control-group">
+                <label id="fileLabel">1. Archivo de Planificación</label>
+                <input type="file" id="excelFileInput" accept=".xlsx, .xls">
+            </div>
+
+            <div class="control-group">
+                <label for="monthSelect">2. Mes Operativo</label>
+                <select id="monthSelect">
+                    <option value="">-- Sin datos --</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="searchInput">3. Buscar en la tabla</label>
+                <input type="text" id="searchInput" class="search-input" placeholder="Buscar local, REQ, código o Zonal..." oninput="window.aplicarFiltroBuscador()">
+            </div>
+
+            <div class="control-group">
+                <label for="filterPending" style="display:flex; align-items:center; gap:8px; cursor:pointer; margin-top: 25px; font-weight: 600; color: #ef4444;">
+                    <input type="checkbox" id="filterPending" onchange="window.aplicarFiltroBuscador()" style="cursor:pointer; width: 16px; height: 16px;">
+                    Pendientes sin REQ
+                </label>
+            </div>
+
+            <button class="btn-action btn-clear" onclick="borrarTodo()">Restablecer Panel</button>
+        </div>
+
+        <div class="table-container">
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th>Acciones</th>
+                        <th class="centrado">Fecha Ejecución</th>
+                        <th>Cód. Tienda</th>
+                        <th>Tienda</th>
+                        <th>Responsable Zonal</th>
+                        <th class="centrado">N° REQ</th>
+                        <th class="centrado" style="min-width: 160px;">N° Cotización</th>
+                        <th>Observaciones</th>
+                        <th class="centrado">Realizado</th>
+                        <th class="centrado">Cot. Enviadas</th>
+                        <th class="centrado">Cierre</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr>
+                        <td colspan="11" class="empty-state">Cargando base de datos...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- VISTA 2: DASHBOARD DE COTIZACIONES -->
+    <div id="vistaDashboard" style="display: none;">
+        
+        <!-- Tarjetas KPIs -->
+        <div class="kpi-container">
+            <div class="kpi-card b-blue">
+                <div class="kpi-title">Total Cotizaciones (Equipos)</div>
+                <div class="kpi-value" id="kpiTotal">0</div>
+            </div>
+            <div class="kpi-card b-yellow">
+                <div class="kpi-title">Pendientes de OC</div>
+                <div class="kpi-value" id="kpiPendientes" style="color: #d97706;">0</div>
+            </div>
+            <div class="kpi-card b-indigo">
+                <div class="kpi-title">Con OC (Pend. Ejecutar)</div>
+                <div class="kpi-value" id="kpiConOC" style="color: #4f46e5;">0</div>
+            </div>
+            <div class="kpi-card b-green">
+                <div class="kpi-title">Trabajos Ejecutados</div>
+                <div class="kpi-value" id="kpiEjecutadas" style="color: var(--success);">0</div>
+            </div>
+        </div>
+
+        <!-- Filtro Dashboard MEJORADO -->
+        <div class="control-panel" style="margin-bottom: 20px; align-items: center; padding: 12px 24px;">
+            <div class="control-group" style="flex: 1; flex-direction: row; align-items: center; gap: 15px; flex-wrap: wrap;">
+                
+                <label style="margin: 0; white-space: nowrap;">Filtro de Estado:</label>
+                <select id="dashStateFilter" style="min-width: 220px;" onchange="window.filtrarDashboard()">
+                    <option value="todos">Todos los estados</option>
+                    <option value="pendiente_oc">⏳ Pendiente de OC</option>
+                    <option value="con_oc">📄 Con OC (Pend. Ejecutar)</option>
+                    <option value="ejecutado">✔️ Ejecutado (Pend. Facturar)</option>
+                    <option value="facturado">💲 Facturado al 100%</option>
+                </select>
+
+                <label style="margin: 0; white-space: nowrap; margin-left: 10px;">Buscador Rápido:</label>
+                <input type="text" id="dashSearchInput" class="search-input" style="flex: 1; min-width: 200px;" placeholder="Filtrar por código, tienda, equipo, técnico..." oninput="window.filtrarDashboard()">
+            </div>
+            <button class="btn-action" style="background-color: var(--secondary); white-space: nowrap;" onclick="cargarDashboardCotizaciones()">🔄 Actualizar Datos</button>
+            <button class="btn-action" style="background-color: var(--success); white-space: nowrap; margin-left: 10px;" onclick="window.exportarExcelCotizaciones()">📥 Descargar Excel</button>
+        </div>
+
+        <!-- Tabla Dashboard -->
+        <div class="table-container" style="max-height: calc(100vh - 350px);">
+            <table id="dashTable">
+                <thead>
+                    <tr>
+                        <th style="width: 70px;">Local</th>
+                        <th style="width: 140px;">Nombre Tienda</th>
+                        <th style="width: 110px;">Equipo</th>
+                        <th style="width: 90px;" class="centrado">Ver Modal</th>
+                        <th style="width: 100px;">Monto ($)</th>
+                        <th style="width: 140px;">Repuestos / Obs.</th>
+                        <th style="width: 110px;">Técnico Asig.</th> 
+                        <th class="centrado" style="width: 50px;" title="¿Tiene OC?">OC?</th>
+                        <th style="width: 90px;">N° OC</th>
+                        <th style="width: 120px;">N° Req. Instalación</th>
+                        <th style="width: 90px;">N° NV</th>
+                        <th style="width: 100px;">Fecha OC</th>
+                        <th style="width: 100px;">F. Ejecución</th>
+                        <th class="centrado" style="width: 50px;" title="¿Trabajo Ejecutado?">Listo</th>
+                        <th class="centrado" style="width: 50px;" title="¿Facturado?">Fact.</th>
+                        <th style="width: 100px;">F. Factura</th>
+                    </tr>
+                </thead>
+                <tbody id="dashTableBody">
+                    <tr><td colspan="16" class="empty-state">Cargando dashboard...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Controles de Paginación -->
+        <div id="dashPagination" style="display: none; justify-content: center; align-items: center; gap: 15px; margin-top: 15px;">
+            <button class="btn-action btn-cancel" onclick="window.cambiarPaginaDash(-1)">Anterior</button>
+            <span id="dashPageInfo" style="font-size: 0.9rem; font-weight: 600; color: var(--primary);">Página 1 de X</span>
+            <button class="btn-action" style="background: var(--secondary);" onclick="window.cambiarPaginaDash(1)">Siguiente</button>
+        </div>
+    </div>
+
+    <!-- VISTA 3: DASHBOARD DE ESTADO DE EQUIPOS -->
+    <div id="vistaDashboardEquipos" style="display: none;">
+        
+        <!-- Tarjetas KPIs Equipos -->
+        <div class="kpi-container">
+            <div class="kpi-card b-blue">
+                <div class="kpi-title">Total Equipos Registrados</div>
+                <div class="kpi-value" id="kpiEqTotal">0</div>
+            </div>
+            <div class="kpi-card b-green">
+                <div class="kpi-title">Operativos</div>
+                <div class="kpi-value" id="kpiEqOp" style="color: var(--success);">0</div>
+            </div>
+            <div class="kpi-card b-yellow">
+                <div class="kpi-title">Con Observaciones</div>
+                <div class="kpi-value" id="kpiEqObs" style="color: #d97706;">0</div>
+            </div>
+            <div class="kpi-card" style="border-left: 4px solid #ef4444;">
+                <div class="kpi-title">Fuera de Servicio</div>
+                <div class="kpi-value" id="kpiEqFs" style="color: #ef4444;">0</div>
+            </div>
+        </div>
+
+        <!-- Controles Dashboard Equipos -->
+        <div class="control-panel" style="margin-bottom: 20px; align-items: center; padding: 12px 24px;">
+            <div class="control-group" style="flex: 1; flex-direction: row; align-items: center; gap: 15px; flex-wrap: wrap;">
+                <label style="margin: 0; white-space: nowrap;">Estado del Equipo:</label>
+                <select id="dashEqStateFilter" style="min-width: 220px;" onchange="window.filtrarDashboardEquipos()">
+                    <option value="todos">Todos los estados</option>
+                    <option value="Operativo">🟢 Operativo</option>
+                    <option value="Con observaciones">🟡 Con observaciones</option>
+                    <option value="Fuera de Servicio">🔴 Fuera de Servicio</option>
+                </select>
+
+                <label style="margin: 0; white-space: nowrap; margin-left: 10px;">Buscador Rápido:</label>
+                <input type="text" id="dashEqSearchInput" class="search-input" style="flex: 1; min-width: 200px;" placeholder="Buscar local, tienda, equipo, N° serie..." oninput="window.filtrarDashboardEquipos()">
+            </div>
+            <button class="btn-action" style="background-color: var(--secondary); white-space: nowrap;" onclick="cargarDashboardEquipos()">🔄 Actualizar Datos</button>
+            <button class="btn-action" style="background-color: var(--success); white-space: nowrap; margin-left: 10px;" onclick="window.exportarExcelEquipos()">📥 Descargar Excel</button>
+        </div>
+
+        <!-- Tabla Dashboard Equipos -->
+        <div class="table-container" style="max-height: calc(100vh - 350px);">
+            <table id="dashEqTable" style="min-width: 1200px;">
+                <thead>
+                    <tr>
+                        <th style="width: 70px;">Local</th>
+                        <th style="width: 180px;">Nombre Tienda</th>
+                        <th style="width: 150px;">Equipo</th>
+                        <th style="width: 110px;">N° Serie</th>
+                        <th style="width: 120px;" class="centrado">Estado Actual</th>
+                        <th style="width: 280px;">Cotizaciones / Repuestos</th>
+                        <th>Observaciones</th>
+                        <th style="width: 100px;" class="centrado">Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="dashEqTableBody">
+                    <tr><td colspan="8" class="empty-state">Cargando equipos...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- VISTA 4: GESTIÓN DE LOCALES (NUEVA PESTAÑA) -->
+    <div id="vistaLocales" style="display: none;">
+        
+        <!-- Formulario para agregar manual -->
+        <div class="control-panel" style="margin-bottom: 20px; align-items: flex-end; padding-bottom: 20px;">
+            <h3 style="width: 100%; margin: 0 0 15px 0; color: var(--primary); font-size: 1.1rem;">➕ Añadir Nuevo Local Manualmente</h3>
+            
+            <div class="control-group">
+                <label>Mes Operativo</label>
+                <input type="text" id="nlMes" class="search-input" list="listaMesesExistentes" placeholder="Ej: ABRIL 2026" style="min-width: 150px; text-transform: uppercase;">
+                <datalist id="listaMesesExistentes"></datalist>
+            </div>
+            <div class="control-group">
+                <label>Fecha de Inicio (Opcional)</label>
+                <input type="date" id="nlFecha" class="search-input" style="min-width: 150px;">
+            </div>
+            <div class="control-group">
+                <label>Cód. Tienda</label>
+                <input type="text" id="nlCod" class="search-input" placeholder="Ej: T-001" style="min-width: 120px;">
+            </div>
+            <div class="control-group">
+                <label>Nombre Tienda</label>
+                <input type="text" id="nlNombre" class="search-input" placeholder="Ej: Local Centro" style="min-width: 200px;">
+            </div>
+            <div class="control-group">
+                <label>Resp. Zonal</label>
+                <input type="text" id="nlZonal" class="search-input" placeholder="Ej: Juan Perez" style="min-width: 150px;">
+            </div>
+            
+            <button class="btn-action btn-save" onclick="window.agregarLocalManual()" style="height: 36px; padding: 0 20px;">Guardar Local</button>
+        </div>
+
+        <!-- Directorio Global -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+            <h3 style="margin: 0; color: var(--primary); font-size: 1.1rem;">📋 Directorio Global de Locales</h3>
+            <input type="text" id="searchLocales" class="search-input" placeholder="Buscar en el directorio..." oninput="window.renderizarTablaLocales()" style="min-width: 250px;">
+        </div>
+
+        <div class="table-container" style="max-height: calc(100vh - 350px);">
+            <table id="tablaLocalesMain" style="min-width: 1000px;">
+                <thead>
+                    <tr>
+                        <th style="width: 120px;">Cód. Tienda</th>
+                        <th style="width: 250px;">Nombre Tienda</th>
+                        <th style="width: 180px;">Jefe Zonal</th>
+                        <th style="width: 250px;">Meses Programados</th>
+                        <th class="centrado" style="width: 100px;">Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyLocalesMain">
+                    <tr><td colspan="5" class="empty-state">Cargando base de datos...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- NUEVO MODAL: EDICIÓN DE LOCAL GLOBAL -->
+<div id="modalEditLocal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 550px;">
+        <div class="modal-header">Editar Datos del Local 🏪</div>
+        <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0;">Actualiza el nombre, responsable y los <b>meses/fechas</b> programadas.</p>
+        
+        <div class="equipo-field" style="margin-top: 5px;">
+            <label>Cód. Tienda (Identificador)</label>
+            <input type="text" id="elCod" class="equipo-input" disabled style="background-color: #f1f5f9; cursor: not-allowed;" title="El código no se puede editar porque es el identificador único.">
+        </div>
+        <div class="equipo-field">
+            <label>Nombre Tienda</label>
+            <input type="text" id="elNombre" class="equipo-input">
+        </div>
+        <div class="equipo-field">
+            <label>Resp. Zonal</label>
+            <input type="text" id="elZonal" class="equipo-input">
+        </div>
+
+        <!-- GESTION DE MESES Y FECHAS -->
+        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed var(--border);">
+            <label style="font-weight: 700; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; display: block; margin-bottom: 8px;">Meses y Fechas Programadas</label>
+            <div id="elListaMeses" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; max-height: 200px; overflow-y: auto; padding-right: 5px;">
+                <!-- Aquí se renderizan los meses -->
+            </div>
+            <div style="display: flex; gap: 6px; align-items: center; background: #f1f5f9; padding: 10px; border-radius: 8px; border: 1px dashed #cbd5e1; flex-wrap: wrap;">
+                <input type="text" id="elNuevoMes" class="equipo-input" list="listaMesesExistentes" placeholder="Mes (Ej: MAYO 2026)" style="flex: 1; min-width: 130px; text-transform: uppercase;" onkeypress="if(event.key === 'Enter') window.agregarMesEditLocal()">
+                <input type="date" id="elNuevaFecha" class="equipo-input" style="width: 130px;" title="Fecha de ejecución (Opcional)">
+                <button class="btn-action" style="background: var(--success); padding: 6px 12px; font-size: 0.8rem;" onclick="window.agregarMesEditLocal()">+ Añadir</button>
+            </div>
+        </div>
+
+        <div class="modal-actions" style="margin-top: 20px;">
+            <button class="btn-modal btn-cancel" onclick="window.cerrarModalEditarLocal()">Cancelar</button>
+            <button id="btnGuardarEditLocal" class="btn-modal btn-save" onclick="window.guardarModalEditarLocal()">Guardar Cambios</button>
+        </div>
+    </div>
+</div>
+
+<!-- NUEVO MODAL: EDICIÓN DE COTIZACIÓN DESDE DASHBOARD -->
+<div id="cotDashModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 550px;">
+        <div class="modal-header">Detalle de Cotización 📝</div>
+        <div class="modal-grid" style="margin-bottom: 5px; background: #e0e7ff; border-color: #c7d2fe;">
+            <div><strong>Local</strong> <span id="cdLocal" style="color: #3730a3; font-weight:bold;"></span></div>
+            <div><strong>Equipo Asignado</strong> <span id="cdEquipo" style="color: #3730a3;"></span></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px;">
+            <div class="equipo-field">
+                <label>N° Cotización</label>
+                <div style="display: flex; gap: 4px;">
+                    <input type="text" id="cdNumero" class="equipo-input" placeholder="Ej: 9988" style="flex: 1;">
+                    <button class="btn-ficha-blue" style="padding: 6px 8px;" onclick="window.abrirFixeatCotizacion('cdNumero')" title="Buscar Cotización en FIXEAT">🔗</button>
+                </div>
+            </div>
+            <div class="equipo-field">
+                <label>Monto Cotizado ($)</label>
+                <input type="text" id="cdMonto" class="equipo-input" placeholder="Monto">
+            </div>
+        </div>
+
+        <div class="equipo-field" style="margin-top: 10px;">
+            <label>Repuestos u Observaciones</label>
+            <textarea id="cdDetalle" class="equipo-textarea" rows="2" placeholder="Detalle de repuestos, notas..."></textarea>
+        </div>
+
+        <!-- CUADRÍCULA DE DATOS TÉCNICOS Y FECHAS -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 15px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+            <div class="equipo-field"><label>Técnico Asignado</label><input type="text" id="cdTecnico" class="equipo-input" list="listaTecnicos" placeholder="Técnico a cargo"></div>
+            <div class="equipo-field"><label>N° OC</label><input type="text" id="cdOC" class="equipo-input" placeholder="Ej: OC-123"></div>
+            
+            <div class="equipo-field">
+                <label>N° Req. Instalación</label>
+                <div style="display: flex; gap: 4px;">
+                    <input type="text" id="cdReq" class="equipo-input" placeholder="Ej: REQ-456" style="flex: 1;">
+                    <button class="btn-ficha-blue" style="padding: 6px 8px;" onclick="window.abrirFixeat('cdReq')" title="Buscar en FIXEAT">🔗</button>
+                </div>
+            </div>
+
+            <div class="equipo-field"><label>N° NV (Nota Venta)</label><input type="text" id="cdNV" class="equipo-input" placeholder="Ej: NV-789"></div>
+            <div class="equipo-field"><label>Fecha Llegada OC</label><input type="date" id="cdFechaOC" class="equipo-input"></div>
+            <div class="equipo-field"><label>Fecha Ejecución</label><input type="date" id="cdFechaEjecucion" class="equipo-input"></div>
+            <div class="equipo-field"><label>Fecha Facturación</label><input type="date" id="cdFechaFacturacion" class="equipo-input"></div>
+        </div>
+
+        <div class="modal-toggles" style="margin-top: 15px; background: #f1f5f9; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <div class="toggle-wrap">¿Tiene OC?: <label class="toggle-switch"><input type="checkbox" id="cdTieneOC"><span class="slider"></span></label></div>
+            <div class="toggle-wrap">¿Ejecutado?: <label class="toggle-switch"><input type="checkbox" id="cdRealizado"><span class="slider"></span></label></div>
+            <div class="toggle-wrap">¿Facturado?: <label class="toggle-switch"><input type="checkbox" id="cdFacturado"><span class="slider"></span></label></div>
+        </div>
+
+        <div class="modal-actions" style="margin-top: 10px;">
+            <button class="btn-modal btn-cancel" onclick="cerrarModalCotDash()">Cancelar</button>
+            <button id="btnGuardarCotDash" class="btn-modal btn-save" onclick="guardarModalCotDash()">Guardar Cambios</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL FICHA GENERAL DE SERVICIO -->
+<div id="fichaModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">Ficha de Servicio - Local <span id="modCodTiendaTitulo"></span></div>
+        <div class="modal-grid">
+            <div>
+                <strong>Fecha de Ejecución</strong> 
+                <input type="date" id="modFechaInput" class="equipo-input" style="width: 100%; margin-top: 4px; box-sizing: border-box;" title="Reprogramar fecha del servicio">
+            </div>
+            <div><strong>Nombre Tienda</strong> <span id="modTienda" style="display:block; margin-top: 10px;"></span></div>
+            <div><strong>Responsable Zonal</strong> <span id="modZonal"></span></div>
+            <div><strong>Mes Operativo</strong> <span id="modMes"></span></div>
+        </div>
+        <div class="modal-toggles">
+            <div class="toggle-wrap">Realizado: <label class="toggle-switch"><input type="checkbox" id="modRealizado"><span class="slider"></span></label></div>
+            <div class="toggle-wrap">Cot. Enviadas: <label class="toggle-switch"><input type="checkbox" id="modCotEnv"><span class="slider"></span></label></div>
+            <div class="toggle-wrap">Cierre: <label class="toggle-switch"><input type="checkbox" id="modCierre"><span class="slider"></span></label></div>
+        </div>
+        <div id="fichaEquiposInfo" style="display: none; background: #fffbeb; border: 1px solid #fde68a; padding: 12px; border-radius: 8px; font-size: 0.85rem; flex-direction: column; gap: 10px;">
+            <div id="fichaCotPendientesContainer" style="display: none;">
+                <strong style="color: #b45309; display: block; margin-bottom: 4px;">⚠️ Cotizaciones Pendientes de Equipos (Sin OC):</strong>
+                <div id="fichaCotPendientesList" style="color: #92400e;"></div>
+            </div>
+            <div id="fichaObsEquiposContainer" style="display: none;">
+                <strong style="color: #b45309; display: block; margin-bottom: 4px;">📝 Observaciones Importantes de Equipos:</strong>
+                <div id="fichaObsEquiposList" style="color: #92400e; line-height: 1.4;"></div>
+            </div>
+        </div>
+        
+        <div class="modal-field">
+            <label>N° REQ (Requerimiento del Servicio)</label>
+            <div style="display: flex; gap: 8px;">
+                <textarea id="modReq" class="modal-textarea" rows="1" placeholder="Ej: R-001" style="flex: 1; margin: 0;"></textarea>
+                <button class="btn-action" style="background: var(--secondary); padding: 8px 12px; font-weight: 600; white-space: nowrap;" onclick="window.abrirFixeat('modReq')">🔗 Abrir en FIXEAT</button>
+            </div>
+        </div>
+
+        <div class="modal-field">
+            <label>N° Cotización(es) Generales del Servicio</label>
+            <textarea id="modCot" class="modal-textarea" rows="1" placeholder="Ej: 1234, 5678"></textarea>
+        </div>
+        <div class="modal-field">
+            <label>Observaciones Puntuales de la Visita</label>
+            <textarea id="modObs" class="modal-textarea" rows="3" placeholder="Agrega un dato puntual, notas de la visita, incidentes..."></textarea>
+        </div>
+
+        <!-- NUEVA SECCIÓN: LINKS DE DESCARGA -->
+        <div style="margin-top: 15px; border-top: 1px dashed var(--border); padding-top: 15px;">
+            <label style="font-weight: 600; color: var(--text-main); font-size: 0.85rem; display: block; margin-bottom: 8px;">Links de Fichas de Servicio</label>
+            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                <input type="text" id="nuevoNombreLink" class="equipo-input" placeholder="Nombre (Ej: Ficha Cierre)" style="flex: 1;">
+                <input type="url" id="nuevoUrlLink" class="equipo-input" placeholder="Pega el link de descarga aquí..." style="flex: 2;">
+                <button class="btn-action" style="background: var(--success); padding: 8px 12px; font-size: 0.8rem; font-weight: 600;" onclick="window.agregarLinkFicha()">+ Agregar Link</button>
+            </div>
+            
+            <div id="listaFichasLinks" style="display: flex; flex-direction: column; gap: 6px;">
+                <!-- Aquí aparecerán los links agregados -->
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn-modal btn-cancel" onclick="cerrarFicha()">Cancelar</button>
+            <button class="btn-modal btn-save" onclick="guardarFicha()">Guardar Cambios</button>
+        </div>
+    </div>
+</div>
+
+<!-- LISTA AUTOCOMPLETABLE DE TÉCNICOS -->
+<datalist id="listaTecnicos">
+    <option value="Hugo Morales">
+    <option value="Jose Luis Gonzalez">
+    <option value="Oscar Jimenez">
+    <option value="Hector Loaiza">
+    <option value="Enzo Rodriguez">
+    <option value="Beato Paula">
+    <option value="Julian Herrera">
+    <option value="Julian Cantillanes">
+    <option value="Juan Rojas">
+    <option value="Sergio Ibañez">
+    <option value="Marcelo Rivero">
+    <option value="Marco Ayala">
+    <option value="Fredy Gallardo">
+    <option value="Victor Valdebenito">
+    <option value="Felipe Santos">
+    <option value="Rogelio Lagos">
+    <option value="Manuel Urrutia">
+    <option value="Juan Gonzalez">
+</datalist>
+
+<!-- MODAL GESTIÓN DE EQUIPOS (LISTA DE TARJETAS) -->
+<div id="equiposModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 700px; width: 95%;">
+        <div class="modal-header">Equipos en Local <span id="eqCodTiendaTitulo"></span></div>
+        
+        <div class="add-equipo-container">
+            <input type="text" id="nuevoEquipoInput" class="search-input" style="flex: 1; min-width: auto;" placeholder="Escribe el nombre del equipo y presiona Enter..." onkeypress="if(event.key === 'Enter') window.agregarEquipo()">
+            <button class="btn-add" onclick="window.agregarEquipo()">+ Agregar Equipo</button>
+        </div>
+
+        <div id="equiposContainer" class="equipos-list">
+            <!-- Las tarjetas de equipos se renderizan dinámicamente aquí -->
+        </div>
+
+        <div class="modal-actions" style="margin-top: 20px;">
+            <button class="btn-modal btn-cancel" onclick="cerrarEquipos()">Cancelar</button>
+            <button id="btnGuardarEquipos" class="btn-modal btn-save" onclick="guardarEquipos()">Guardar Todo en la Nube</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DETALLE DE UN EQUIPO ESPECÍFICO -->
+<div id="modalEquipoDetalle" class="modal-overlay">
+    <div class="modal-content" style="max-width: 800px; width: 95%;">
+        <div class="modal-header">Trabajar en Equipo 🔧</div>
+        
+        <div id="equipoDetalleContainer" style="margin-top: 15px;">
+            <!-- Contenido dinámico del equipo activo -->
+        </div>
+
+        <div class="modal-actions" style="margin-top: 20px; display: flex; justify-content: space-between;">
+            <button class="btn-remove" onclick="window.eliminarEquipoActivo()" title="Borrar este equipo de la lista de forma permanente">🗑️ Eliminar Equipo</button>
+            <button class="btn-modal btn-save" onclick="window.cerrarModalEquipoDetalle()">Aceptar y Volver</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, deleteDoc, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+    const firebaseConfig = {
+  apiKey: "AIzaSyCM_NVqbjFcwF9sxXF3bP9Xr4ukIBoWlFA",
+  authDomain: "sisa-b2f7a.firebaseapp.com",
+  projectId: "sisa-b2f7a",
+  storageBucket: "sisa-b2f7a.firebasestorage.app",
+  messagingSenderId: "662129649079",
+  appId: "1:662129649079:web:eeb8cdb10b0e7aad933432"
+};
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app); 
+
+    let datosGlobales = [];
+    let unsubsribeEstados = null;
+    
+    // Variables para paginación y modal del Dashboard
+    window.dashDatosGlobales = [];
+    window.dashDatosFiltrados = [];
+    window.dashPaginaActual = 1;
+    window.dashItemsPorPagina = 50;
+    window.cotDashContext = { codTienda: null, eqIndex: null, cIndex: null };
+
+    // --- FORMATEADOR PESO CHILENO (CLP) ---
+    window.formatearCLP = function(valor) {
+        if (valor === undefined || valor === null || valor === '' || valor === '-') return '-';
+        let numStr = valor.toString().replace(/\D/g, '');
+        if (!numStr) return valor; 
+        let num = parseInt(numStr, 10);
+        return '$' + num.toLocaleString('es-CL');
+    };
+
+    // --- LÓGICA NAVEGACIÓN TABS ---
+    window.cambiarVista = function(vista) {
+        document.getElementById('vistaPanel').style.display = 'none';
+        document.getElementById('vistaDashboard').style.display = 'none';
+        document.getElementById('vistaDashboardEquipos').style.display = 'none';
+        document.getElementById('vistaLocales').style.display = 'none';
+        
+        document.getElementById('tabBtnPanel').classList.remove('active');
+        document.getElementById('tabBtnDash').classList.remove('active');
+        document.getElementById('tabBtnEquipos').classList.remove('active');
+        document.getElementById('tabBtnLocales').classList.remove('active');
+
+        if(vista === 'panel') {
+            document.getElementById('vistaPanel').style.display = 'block';
+            document.getElementById('tabBtnPanel').classList.add('active');
+        } else if(vista === 'dashboard') {
+            document.getElementById('vistaDashboard').style.display = 'block';
+            document.getElementById('tabBtnDash').classList.add('active');
+            window.cargarDashboardCotizaciones(); 
+        } else if(vista === 'dashboardEquipos') {
+            document.getElementById('vistaDashboardEquipos').style.display = 'block';
+            document.getElementById('tabBtnEquipos').classList.add('active');
+            window.cargarDashboardEquipos(); 
+        } else if(vista === 'locales') {
+            document.getElementById('vistaLocales').style.display = 'block';
+            document.getElementById('tabBtnLocales').classList.add('active');
+            window.renderizarTablaLocales();
+        }
+    };
+
+    // --- LÓGICA DE SESIÓN ---
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('mainContainer').style.display = 'block';
+            document.getElementById('btnLogout').style.display = 'block';
+            document.getElementById('fileLabel').innerHTML = "1. Conectando a Firebase...";
+            
+            try {
+                const docRef = doc(db, "sistema", "datosGlobales");
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    datosGlobales = JSON.parse(docSnap.data().excelJson || "[]");
+                    document.getElementById('fileLabel').innerHTML = "1. Archivo Activo en Nube";
+                    actualizarSelectorMeses(datosGlobales);
+                    
+                    const mesesUnicos = [...new Set(datosGlobales.map(row => row.MES).filter(Boolean))];
+                    if (mesesUnicos.length > 0) {
+                        const ultimoMesCargado = mesesUnicos[mesesUnicos.length - 1];
+                        document.getElementById('monthSelect').value = ultimoMesCargado;
+                    }
+                    
+                    await procesarDatos();
+                } else {
+                    document.getElementById('fileLabel').innerHTML = "1. Archivo de Planificación (.xlsx)";
+                    document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" class="empty-state">No hay datos. Cargue un archivo Excel.</td></tr>';
+                }
+            } catch (error) {
+                console.error("Error al cargar:", error);
+                document.getElementById('fileLabel').innerHTML = "1. Error de conexión";
+            }
+        } else {
+            document.getElementById('loginContainer').style.display = 'block';
+            document.getElementById('mainContainer').style.display = 'none';
+            document.getElementById('btnLogout').style.display = 'none';
+        }
+    });
+
+    window.iniciarSesion = function() {
+        const email = document.getElementById('txtEmail').value;
+        const pass = document.getElementById('txtPassword').value;
+        const msjError = document.getElementById('loginError');
+        
+        msjError.style.display = 'none';
+        
+        signInWithEmailAndPassword(auth, email, pass)
+            .then(() => {
+                document.getElementById('txtEmail').value = '';
+                document.getElementById('txtPassword').value = '';
+            })
+            .catch((error) => {
+                console.error("Error de login:", error);
+                msjError.style.display = 'block';
+            });
+    };
+
+    window.cerrarSesion = function() {
+        signOut(auth).then(() => {
+            datosGlobales = [];
+            document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" class="empty-state">Cargando base de datos...</td></tr>';
+            document.getElementById('monthSelect').innerHTML = '<option value="">-- Sin datos --</option>';
+            if (unsubsribeEstados) unsubsribeEstados();
+            window.cambiarVista('panel'); 
+        }).catch((error) => {
+            console.error("Error al cerrar sesión:", error);
+        });
+    };
+
+    window.aplicarFiltroBuscador = function() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const filterPending = document.getElementById('filterPending') ? document.getElementById('filterPending').checked : false;
+        const rows = document.querySelectorAll('#tableBody tr');
+
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        const hoyMs = hoy.getTime();
+
+        rows.forEach(row => {
+            if (row.querySelector('.empty-state')) return;
+
+            const textContent = row.textContent.toLowerCase();
+            const textareas = row.querySelectorAll('textarea');
+            let inputTexts = '';
+            textareas.forEach(ta => inputTexts += ta.value.toLowerCase() + ' ');
+
+            const reqInput = row.querySelector('textarea[id^="req_"]');
+            const realizadoCheck = row.querySelector('input[type="checkbox"][id^="realizado_"]');
+
+            let matchSearch = (textContent.includes(searchTerm) || inputTexts.includes(searchTerm));
+            let matchPending = true;
+
+            const hasReq = reqInput && reqInput.value.trim() !== '';
+            const isRealizado = realizadoCheck && realizadoCheck.checked;
+
+            if (filterPending) {
+                matchPending = !isRealizado && !hasReq;
+            }
+
+            if (matchSearch && matchPending) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+
+            const fechaRowMs = parseInt(row.getAttribute('data-fecha'));
+            if (fechaRowMs && fechaRowMs < hoyMs && !isRealizado) {
+                row.style.backgroundColor = '#fee2e2'; 
+            } else {
+                row.style.backgroundColor = ''; 
+            }
+        });
+    }
+
+    // --- LÓGICA DE LA FICHA GENERAL ---
+    window.fichaContext = { codTienda: null, mes: null, linksFichas: [] };
+
+    window.abrirFicha = async function(codTienda, fechaOrigStr, tienda, zonal, mes) {
+        window.fichaContext = { codTienda, mes, linksFichas: [] };
+        document.getElementById('modCodTiendaTitulo').innerText = codTienda;
+        document.getElementById('modTienda').innerText = tienda;
+        document.getElementById('modZonal').innerText = zonal;
+        document.getElementById('modMes').innerText = mes;
+        document.getElementById('modFechaInput').value = '';
+        
+        document.getElementById('fichaEquiposInfo').style.display = 'none';
+        document.getElementById('fichaCotPendientesContainer').style.display = 'none';
+        document.getElementById('fichaObsEquiposContainer').style.display = 'none';
+        document.getElementById('fichaCotPendientesList').innerHTML = '';
+        document.getElementById('fichaObsEquiposList').innerHTML = '';
+        
+        try {
+            const docRef = doc(db, `estados_${mes}`, codTienda);
+            const docSnap = await getDoc(docRef);
+            let datosNube = docSnap.exists() ? docSnap.data() : {};
+
+            const eqRef = doc(db, "equipos_locales", codTienda);
+            const eqSnap = await getDoc(eqRef);
+            let eqData = eqSnap.exists() ? eqSnap.data() : null;
+
+            if (eqData && eqData.Equipos) {
+                let cotHTML = '';
+                let obsHTML = '';
+
+                eqData.Equipos.forEach(eq => {
+                    if (eq.listaCotizaciones) {
+                        eq.listaCotizaciones.forEach(cot => {
+                            if (!cot.realizado && !cot.tieneOC && cot.numero && cot.numero.trim() !== '') {
+                                cotHTML += `<div style="margin-bottom:2px;">• ${cot.numero} <i>(${eq.nombre})</i></div>`;
+                            }
+                        });
+                    }
+                    if (eq.observaciones && eq.observaciones.trim() !== '') {
+                        obsHTML += `<div style="margin-bottom:4px;"><b>${eq.nombre}:</b> ${eq.observaciones}</div>`;
+                    }
+                });
+
+                let showInfo = false;
+                if (cotHTML !== '') {
+                    document.getElementById('fichaCotPendientesList').innerHTML = cotHTML;
+                    document.getElementById('fichaCotPendientesContainer').style.display = 'block';
+                    showInfo = true;
+                }
+                if (obsHTML !== '') {
+                    document.getElementById('fichaObsEquiposList').innerHTML = obsHTML;
+                    document.getElementById('fichaObsEquiposContainer').style.display = 'block';
+                    showInfo = true;
+                }
+                
+                if (showInfo) {
+                    document.getElementById('fichaEquiposInfo').style.display = 'flex';
+                }
+            }
+
+            let fechaParaInput = '';
+            if (datosNube.FechaModificada) {
+                fechaParaInput = datosNube.FechaModificada; 
+            } else {
+                let parts = fechaOrigStr.replace(/\//g, '-').split('-');
+                if (parts.length === 3) {
+                    if (parts[0].length <= 2 && parts[2].length === 4) {
+                        fechaParaInput = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+                    } else if (parts[0].length === 4) {
+                        fechaParaInput = `${parts[0]}-${parts[1].padStart(2,'0')}-${parts[2].padStart(2,'0')}`;
+                    }
+                }
+            }
+            
+            document.getElementById('modFechaInput').value = fechaParaInput;
+            document.getElementById('modReq').value = datosNube.NumReq || '';
+            document.getElementById('modCot').value = datosNube.NumCot || '';
+            document.getElementById('modObs').value = datosNube.Observaciones || '';
+            document.getElementById('modRealizado').checked = !!datosNube.Realizado;
+            document.getElementById('modCotEnv').checked = !!datosNube.CotEnviadas;
+            document.getElementById('modCierre').checked = !!datosNube.Cierre;
+            
+            document.getElementById('nuevoNombreLink').value = '';
+            document.getElementById('nuevoUrlLink').value = '';
+            window.fichaContext.linksFichas = datosNube.LinksFichas || [];
+            window.renderizarLinksFichas();
+
+            document.getElementById('fichaModal').style.display = 'flex';
+        } catch(error) {
+            console.error("Error al abrir la ficha:", error);
+        }
+    };
+
+    window.cerrarFicha = function() {
+        document.getElementById('fichaModal').style.display = 'none';
+    };
+
+    window.guardarFicha = async function() {
+        const { codTienda, mes } = window.fichaContext;
+        
+        const nFecha = document.getElementById('modFechaInput').value; 
+        const nReq = document.getElementById('modReq').value;
+        const nCot = document.getElementById('modCot').value;
+        const nObs = document.getElementById('modObs').value;
+        const bRealizado = document.getElementById('modRealizado').checked;
+        const bCotEnv = document.getElementById('modCotEnv').checked;
+        const bCierre = document.getElementById('modCierre').checked;
+
+        try {
+            const docRef = doc(db, `estados_${mes}`, codTienda);
+            await setDoc(docRef, {
+                FechaModificada: nFecha, NumReq: nReq, NumCot: nCot, Observaciones: nObs,
+                Realizado: bRealizado, CotEnviadas: bCotEnv, Cierre: bCierre,
+                LinksFichas: window.fichaContext.linksFichas
+            }, { merge: true });
+            
+            cerrarFicha();
+            procesarDatos(); 
+        } catch(error) {
+            console.error("Error al guardar ficha:", error);
+            alert("Hubo un error de conexión al guardar los cambios.");
+        }
+    };
+
+    document.getElementById('excelFileInput').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        document.getElementById('fileLabel').innerHTML = "Subiendo a la nube...";
+
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonResult = XLSX.utils.sheet_to_json(worksheet, { raw: false, range: 2 });
+            
+            const nuevosMeses = [...new Set(jsonResult.map(row => row.MES).filter(Boolean))];
+            let datosFiltradosAntiguos = datosGlobales.filter(row => !nuevosMeses.includes(row.MES));
+            
+            datosGlobales = [...datosFiltradosAntiguos, ...jsonResult];
+            
+            try {
+                await setDoc(doc(db, "sistema", "datosGlobales"), { excelJson: JSON.stringify(datosGlobales) });
+                document.getElementById('fileLabel').innerHTML = "1. Archivo Cargado con Éxito";
+                actualizarSelectorMeses(datosGlobales);
+                
+                if (nuevosMeses.length > 0) {
+                    const ultimoMesCargado = nuevosMeses[nuevosMeses.length - 1];
+                    document.getElementById('monthSelect').value = ultimoMesCargado;
+                }
+
+                await procesarDatos();
+            } catch (error) {
+                alert("Error al subir y combinar el archivo.");
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    });
+
+    document.getElementById('monthSelect').addEventListener('change', async function() {
+        await procesarDatos();
+    });
+
+    function actualizarSelectorMeses(data) {
+        const monthSelect = document.getElementById('monthSelect');
+        const datalistMeses = document.getElementById('listaMesesExistentes');
+        
+        const mesesUnicos = [...new Set(data.map(row => row.MES).filter(Boolean))];
+        
+        monthSelect.innerHTML = '';
+        if(datalistMeses) datalistMeses.innerHTML = '';
+        
+        if (mesesUnicos.length === 0) return;
+
+        mesesUnicos.forEach(mes => {
+            const option = document.createElement('option');
+            option.value = mes;
+            option.textContent = mes;
+            monthSelect.appendChild(option);
+
+            if(datalistMeses) {
+                const optDL = document.createElement('option');
+                optDL.value = mes;
+                datalistMeses.appendChild(optDL);
+            }
+        });
+    }
+
+    async function procesarDatos() {
+        const tableBody = document.getElementById('tableBody');
+        const mesSeleccionado = document.getElementById('monthSelect').value;
+        
+        document.getElementById('searchInput').value = '';
+
+        if (datosGlobales.length === 0 || !mesSeleccionado) {
+            tableBody.innerHTML = '<tr><td colspan="11" class="empty-state">Seleccione un mes o cargue un archivo válido.</td></tr>';
+            if (unsubsribeEstados) unsubsribeEstados(); 
+            return;
+        }
+
+        let datosFiltrados = datosGlobales.filter(row => row.MES === mesSeleccionado && row.TIENDA);
+        
+        let estadosMap = {};
+        let equiposMap = {}; 
+        
+        try {
+            const querySnapshot = await getDocs(collection(db, `estados_${mesSeleccionado}`));
+            querySnapshot.forEach(doc => { estadosMap[doc.id] = doc.data(); });
+            
+            const equiposSnapshot = await getDocs(collection(db, "equipos_locales"));
+            equiposSnapshot.forEach(doc => { equiposMap[doc.id] = doc.data(); });
+        } catch(e) { 
+            console.error("Error al consultar base de datos", e); 
+        }
+
+        const parseDateMs = (fechaStr) => {
+            if (!fechaStr) return 0;
+            if (typeof fechaStr === 'number') return fechaStr;
+            let str = fechaStr.toString().trim();
+            let partes = str.replace(/\//g, '-').split('-');
+            if (partes.length === 3) {
+                if (partes[0].length <= 2 && partes[2].length === 4) {
+                    return new Date(`${partes[2]}-${partes[1]}-${partes[0]}`).getTime();
+                } else if (partes[0].length === 4) {
+                    return new Date(`${partes[0]}-${partes[1]}-${partes[2]}`).getTime();
+                }
+            }
+            return new Date(str).getTime() || 0;
+        };
+
+        datosFiltrados.forEach(row => {
+            const cod = row['CÓDIGO TIENDA'];
+            row._sortMs = parseDateMs(row['FECHA INICIO']); 
+            row._hasModDate = false;
+
+            if (estadosMap[cod] && estadosMap[cod].FechaModificada) {
+                const parts = estadosMap[cod].FechaModificada.split('-'); 
+                if (parts.length === 3) {
+                    row._sortMs = new Date(parts[0], parts[1]-1, parts[2]).getTime();
+                    row._hasModDate = true;
+                    row._modDateStr = estadosMap[cod].FechaModificada; 
+                }
+            }
+        });
+
+        datosFiltrados.sort((a, b) => a._sortMs - b._sortMs);
+        
+        const escaparTextos = (texto) => (texto || '').toString().replace(/'/g, "\\'");
+
+        if (datosFiltrados.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="11" class="empty-state" style="color: #ef4444;">No se encontraron registros.</td></tr>';
+            if (unsubsribeEstados) unsubsribeEstados();
+            return;
+        }
+
+        tableBody.innerHTML = '';
+        datosFiltrados.forEach((row) => {
+            const tr = document.createElement('tr');
+            const codTienda = row['CÓDIGO TIENDA'] || '';
+            
+            const fechaStr = escaparTextos(row['FECHA INICIO']);
+            const tiendaStr = escaparTextos(row['TIENDA']);
+            const zonalStr = escaparTextos(row['JEFE ZONAL']);
+
+            tr.setAttribute('data-fecha', row._sortMs);
+
+            let displayModDate = '';
+            let styleOrigDate = 'color: var(--primary); font-size: 0.85rem;';
+            
+            if (row._hasModDate) {
+                displayModDate = row._modDateStr.split('-').reverse().join('-');
+                styleOrigDate = 'text-decoration: line-through; color: #94a3b8; font-weight: normal; font-size: 0.75rem;';
+            }
+
+            let cotPendientesHTML = '';
+            if (equiposMap[codTienda] && equiposMap[codTienda].Equipos) {
+                equiposMap[codTienda].Equipos.forEach(eq => {
+                    if (eq.listaCotizaciones) {
+                        eq.listaCotizaciones.forEach(cot => {
+                            if (!cot.tieneOC && cot.numero && cot.numero.trim() !== '') {
+                                cotPendientesHTML += `<div style="margin-bottom:2px; font-weight:600;">• ${cot.numero} <span style="font-weight:400; font-style:italic;">(${eq.nombre})</span></div>`;
+                            }
+                        });
+                    }
+                });
+            }
+            const displayCotStyle = cotPendientesHTML ? 'block' : 'none';
+
+            tr.innerHTML = `
+                <td class="centrado">
+                    <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
+                        <button class="btn-ficha" onclick="window.abrirFicha('${codTienda}', '${fechaStr}', '${tiendaStr}', '${zonalStr}', '${mesSeleccionado}')">📝 Ficha</button>
+                        <button class="btn-equipos" onclick="window.abrirEquipos('${codTienda}', '${mesSeleccionado}')">🔧 Equipos</button>
+                    </div>
+                </td>
+                <td class="centrado">
+                    <div id="disp_fecha_orig_${codTienda}" class="fw-bold" style="${styleOrigDate}">${row['FECHA INICIO'] || ''}</div>
+                    <div id="disp_fecha_mod_${codTienda}" class="fw-bold" style="font-size: 0.85rem; color: var(--secondary); display: ${row._hasModDate ? 'block' : 'none'};">${displayModDate}</div>
+                </td>
+                <td>${codTienda}</td>
+                <td>${row['TIENDA'] || ''}</td>
+                <td>${row['JEFE ZONAL'] || ''}</td>
+                <td class="centrado">
+                    <div style="display: flex; gap: 4px; align-items: center; justify-content: center;">
+                        <textarea id="req_${codTienda}" class="input-manual" style="width: 80px;" rows="1" onchange="window.guardarCampoManual(this, 'NumReq', '${codTienda}', '${mesSeleccionado}')"></textarea>
+                        <button class="btn-ficha-blue" style="padding: 6px 8px; height: 32px; font-size: 0.9rem;" onclick="window.abrirFixeat('req_${codTienda}')" title="Buscar REQ en FIXEAT">🔗</button>
+                    </div>
+                </td>
+                <td class="centrado" style="min-width: 160px; vertical-align: top;">
+                    <div id="equipos_cot_${codTienda}" style="font-size: 0.75rem; color: #b45309; background: #fef3c7; border: 1px solid #fde68a; border-radius: 4px; padding: 4px; margin-bottom: 4px; display: ${displayCotStyle}; text-align: left; line-height: 1.2; max-height: 80px; overflow-y: auto;">
+                        ${cotPendientesHTML}
+                    </div>
+                    <textarea id="cot_${codTienda}" class="input-manual" rows="1" style="width: 100%;" onchange="window.guardarCampoManual(this, 'NumCot', '${codTienda}', '${mesSeleccionado}')" placeholder="Otras cotiz..."></textarea>
+                </td>
+                <td>
+                    <textarea id="obs_${codTienda}" class="input-manual input-obs" rows="1" onchange="window.guardarCampoManual(this, 'Observaciones', '${codTienda}', '${mesSeleccionado}')"></textarea>
+                </td>
+                <td class="centrado">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="realizado_${codTienda}" onchange="window.guardarEstado(this, 'Realizado', '${codTienda}', '${mesSeleccionado}')">
+                        <span class="slider"></span>
+                    </label>
+                </td>
+                <td class="centrado">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="cotEnv_${codTienda}" onchange="window.guardarEstado(this, 'CotEnviadas', '${codTienda}', '${mesSeleccionado}')">
+                        <span class="slider"></span>
+                    </label>
+                </td>
+                <td class="centrado">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="cierre_${codTienda}" onchange="window.guardarEstado(this, 'Cierre', '${codTienda}', '${mesSeleccionado}')">
+                        <span class="slider"></span>
+                    </label>
+                </td>
+            `;
+            tableBody.appendChild(tr);
+        });
+
+        if (unsubsribeEstados) unsubsribeEstados(); 
+
+        const coleccionRef = collection(db, `estados_${mesSeleccionado}`);
+        
+        unsubsribeEstados = onSnapshot(coleccionRef, (snapshot) => {
+            snapshot.forEach(doc => {
+                const codTienda = doc.id;
+                const datosNube = doc.data();
+
+                const chkRealizado = document.getElementById(`realizado_${codTienda}`);
+                const chkCotEnv = document.getElementById(`cotEnv_${codTienda}`);
+                const chkCierre = document.getElementById(`cierre_${codTienda}`);
+                const inputReq = document.getElementById(`req_${codTienda}`);
+                const inputCot = document.getElementById(`cot_${codTienda}`);
+                const inputObs = document.getElementById(`obs_${codTienda}`); 
+                const dispOrig = document.getElementById(`disp_fecha_orig_${codTienda}`);
+                const dispMod = document.getElementById(`disp_fecha_mod_${codTienda}`);
+
+                if (chkRealizado) chkRealizado.checked = !!datosNube.Realizado;
+                if (chkCotEnv) chkCotEnv.checked = !!datosNube.CotEnviadas;
+                if (chkCierre) chkCierre.checked = !!datosNube.Cierre;
+
+                if (inputReq && document.activeElement !== inputReq) inputReq.value = datosNube.NumReq || '';
+                if (inputCot && document.activeElement !== inputCot) inputCot.value = datosNube.NumCot || '';
+                if (inputObs && document.activeElement !== inputObs) inputObs.value = datosNube.Observaciones || '';
+                
+                if (dispOrig && dispMod) {
+                    if (datosNube.FechaModificada) {
+                        dispOrig.style.textDecoration = 'line-through';
+                        dispOrig.style.color = '#94a3b8';
+                        dispOrig.style.fontWeight = 'normal';
+                        dispOrig.style.fontSize = '0.75rem';
+                        
+                        dispMod.style.display = 'block';
+                        dispMod.innerText = datosNube.FechaModificada.split('-').reverse().join('-');
+                    } else {
+                        dispOrig.style.textDecoration = 'none';
+                        dispOrig.style.color = 'var(--primary)';
+                        dispOrig.style.fontWeight = 'bold';
+                        dispOrig.style.fontSize = '0.85rem';
+                        dispMod.style.display = 'none';
+                        dispMod.innerText = '';
+                    }
+                }
+            });
+            window.aplicarFiltroBuscador();
+        });
+    }
+
+    window.guardarEstado = async function(checkbox, tipoAccion, codigoTienda, mes) {
+        try {
+            await setDoc(doc(db, `estados_${mes}`, codigoTienda), { [tipoAccion]: checkbox.checked }, { merge: true });
+        } catch(error) {
+            checkbox.checked = !checkbox.checked;
+            alert("Error de conexión.");
+        }
+    }
+
+    window.guardarCampoManual = async function(input, tipoAccion, codigoTienda, mes) {
+        try {
+            await setDoc(doc(db, `estados_${mes}`, codigoTienda), { [tipoAccion]: input.value }, { merge: true });
+        } catch(error) {
+            alert("Error de conexión.");
+        }
+    }
+
+    window.borrarTodo = async function() {
+        if (confirm("ATENCIÓN: ¿Está seguro que desea limpiar el archivo general de Firebase?")) {
+            try {
+                if (unsubsribeEstados) unsubsribeEstados(); 
+                await deleteDoc(doc(db, "sistema", "datosGlobales"));
+                datosGlobales = [];
+                document.getElementById('excelFileInput').value = '';
+                document.getElementById('monthSelect').innerHTML = '<option value="">-- Sin datos --</option>';
+                document.getElementById('searchInput').value = '';
+                procesarDatos();
+            } catch(error) {
+                alert("No se pudo limpiar la base de datos.");
+            }
+        }
+    }
+
+    // --- LÓGICA DEL DASHBOARD DE COTIZACIONES ---
+    window.cargarDashboardCotizaciones = async function() {
+        const tbody = document.getElementById('dashTableBody');
+        tbody.innerHTML = '<tr><td colspan="16" class="centrado">Extrayendo datos de los equipos...</td></tr>';
+
+        let mapTiendas = {};
+        datosGlobales.forEach(row => {
+            if(row['CÓDIGO TIENDA'] && row['TIENDA']) {
+                mapTiendas[row['CÓDIGO TIENDA']] = row['TIENDA'];
+            }
+        });
+
+        let arrayCotizaciones = [];
+        let total = 0, pendientes = 0, conOC = 0, ejecutadas = 0;
+
+        try {
+            const querySnapshot = await getDocs(collection(db, "equipos_locales"));
+            
+            querySnapshot.forEach(doc => {
+                const codTienda = doc.id;
+                const nombreTienda = mapTiendas[codTienda] || 'Sin Registro en Planificación';
+                const data = doc.data();
+
+                if(data.Equipos && data.Equipos.length > 0) {
+                    data.Equipos.forEach((eq, eqIndex) => {
+                        if(eq.listaCotizaciones && eq.listaCotizaciones.length > 0) {
+                            eq.listaCotizaciones.forEach((cot, cIndex) => {
+                                if(!cot.numero && !cot.monto && !cot.detalle) return;
+
+                                total++;
+                                if(cot.realizado) ejecutadas++;
+                                else if(cot.tieneOC) conOC++;
+                                else pendientes++;
+
+                                arrayCotizaciones.push({
+                                    codTienda,
+                                    nombreTienda,
+                                    equipo: eq.nombre,
+                                    eqIndex: eqIndex,
+                                    cIndex: cIndex,
+                                    numero: cot.numero || 'S/N',
+                                    detalle: cot.detalle || '', 
+                                    tecnicoAsignado: cot.tecnicoAsignado || '', 
+                                    monto: cot.monto || '-',
+                                    fecha: cot.fecha ? cot.fecha.split('-').reverse().join('-') : '-',
+                                    tieneOC: !!cot.tieneOC,
+                                    realizado: !!cot.realizado,
+                                    facturado: !!cot.facturado,
+                                    numeroOC: cot.numeroOC || '',
+                                    reqInstalacion: cot.reqInstalacion || '',
+                                    numeroNV: cot.numeroNV || '', 
+                                    fechaOC: cot.fechaOC || '',
+                                    fechaEjecucion: cot.fechaEjecucion || '',
+                                    fechaFacturacion: cot.fechaFacturacion || ''
+                                });
+                            });
+                        }
+                    });
+                }
+            });
+
+            document.getElementById('kpiTotal').innerText = total;
+            document.getElementById('kpiPendientes').innerText = pendientes;
+            document.getElementById('kpiConOC').innerText = conOC;
+            document.getElementById('kpiEjecutadas').innerText = ejecutadas;
+
+            arrayCotizaciones.sort((a,b) => a.codTienda.localeCompare(b.codTienda));
+
+            window.dashDatosGlobales = arrayCotizaciones;
+            window.dashPaginaActual = 1;
+            window.filtrarDashboard(); 
+
+        } catch(e) {
+            console.error(e);
+            tbody.innerHTML = '<tr><td colspan="16" class="centrado empty-state" style="color: #ef4444;">Ocurrió un error al cargar el Dashboard.</td></tr>';
+        }
+    };
+
+    // --- FILTRO MEJORADO DE ESTADOS ---
+    window.filtrarDashboard = function(resetearPagina = true) {
+        const searchTerm = document.getElementById('dashSearchInput').value.toLowerCase();
+        const estadoFiltro = document.getElementById('dashStateFilter').value;
+        
+        if (resetearPagina) window.dashPaginaActual = 1;
+
+        window.dashDatosFiltrados = window.dashDatosGlobales.filter(cot => {
+            // 1. Filtro de Texto
+            let coincideTexto = true;
+            if (searchTerm !== '') {
+                const textoCompleto = `${cot.codTienda} ${cot.nombreTienda} ${cot.equipo} ${cot.numero} ${cot.detalle} ${cot.monto} ${cot.numeroOC} ${cot.reqInstalacion} ${cot.numeroNV} ${cot.tecnicoAsignado}`.toLowerCase();
+                coincideTexto = textoCompleto.includes(searchTerm);
+            }
+
+            // 2. Filtro de Estado
+            let coincideEstado = true;
+            if (estadoFiltro === 'pendiente_oc') {
+                coincideEstado = !cot.tieneOC;
+            } else if (estadoFiltro === 'con_oc') {
+                coincideEstado = cot.tieneOC && !cot.realizado;
+            } else if (estadoFiltro === 'ejecutado') {
+                coincideEstado = cot.realizado && !cot.facturado;
+            } else if (estadoFiltro === 'facturado') {
+                coincideEstado = !!cot.facturado;
+            }
+
+            return coincideTexto && coincideEstado;
+        });
+        
+        window.renderizarTablaDashboard();
+    };
+
+    window.renderizarTablaDashboard = function() {
+        const tbody = document.getElementById('dashTableBody');
+        tbody.innerHTML = '';
+
+        if(window.dashDatosFiltrados.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="16" class="centrado empty-state">No hay cotizaciones para mostrar con este filtro.</td></tr>';
+            document.getElementById('dashPagination').style.display = 'none';
+            return;
+        }
+
+        const totalPaginas = Math.ceil(window.dashDatosFiltrados.length / window.dashItemsPorPagina);
+        if (window.dashPaginaActual > totalPaginas) window.dashPaginaActual = totalPaginas;
+
+        const inicio = (window.dashPaginaActual - 1) * window.dashItemsPorPagina;
+        const fin = inicio + window.dashItemsPorPagina;
+        const datosPagina = window.dashDatosFiltrados.slice(inicio, fin);
+
+        datosPagina.forEach(cot => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="fw-bold" style="color: var(--primary); font-size: 0.8rem;">${cot.codTienda}</td>
+                <td style="font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;" title="${cot.nombreTienda}">${cot.nombreTienda}</td>
+                <td style="font-size: 0.75rem;">🔧 ${cot.equipo}</td>
+                
+                <td class="centrado">
+                    <button class="btn-ficha-blue" onclick="window.abrirModalCotDash('${cot.codTienda}', ${cot.eqIndex}, ${cot.cIndex})" title="Ver detalles y editar">
+                        🔍 ${cot.numero}
+                    </button>
+                </td>
+
+                <td style="font-weight: 600; font-size: 0.8rem; color: var(--primary); text-align: right;">
+                    ${window.formatearCLP(cot.monto)}
+                </td>
+                
+                <td>
+                    <input type="text" class="equipo-input" style="padding: 4px; font-size: 0.75rem; width: 100%; box-sizing: border-box;" value="${cot.detalle}" placeholder="Repuestos..." onchange="window.actualizarCotizacionDesdeDash('${cot.codTienda}', ${cot.eqIndex}, ${cot.cIndex}, 'detalle', this.value)">
+                </td>
+                
+                <td>
+                    <input type="text" class="equipo-input" list="listaTecnicos" style="padding: 4px; font-size: 0.75rem; width: 100%; box-sizing: border-box;" value="${cot.tecnicoAsignado}" placeholder="Técnico..." onchange="window.actualizarCotizacionDesdeDash('${cot.codTienda}', ${cot.eqIndex}, ${cot.cIndex}, 'tecnicoAsignado', this.value)">
+                </td>
+
+                <td class="centrado">
+                    <input type="checkbox" style="cursor:pointer; transform: scale(1.3);" ${cot.tieneOC ? 'checked' : ''} onchange="window.actualizarCotizacionDesdeDash('${cot.codTienda}', ${cot.eqIndex}, ${cot.cIndex}, 'tieneOC', this.checked)">
+                </td>
+                <td>
+                    <input type="text" class="equipo-input" style="padding: 4px; font-size: 0.75rem; width: 100%; box-sizing: border-box;" value="${cot.numeroOC}" placeholder="N° OC" onchange="window.actualizarCotizacionDesdeDash('${cot.codTienda}', ${cot.eqIndex}, ${cot.cIndex}, 'numeroOC', this.value)">
+                </td>
+                
+                <td>
+                    <div style="display: flex; gap: 2px;">
+                        <input type="text" id="dash_req_${cot.codTienda}_${cot.eqIndex}_${cot.cIndex}" class="equipo-input" style="padding: 4px; font-size: 0.75rem; width: 100%; box-sizing: border-box;" value="${cot.reqInstalacion}" placeholder="N° Req." onchange="window.actualizarCotizacionDesdeDash('${cot.codTienda}', ${cot.eqIndex}, ${cot.cIndex}, 'reqInstalacion', this.value)">
+                        <button class="btn-ficha-blue" style="padding: 4px 6px;" onclick="window.abrirFixeat('dash_req_${cot.codTienda}_${cot.eqIndex}_${cot.cIndex}')" title="Buscar en FIXEAT">🔗</button>
+                    </div>
+                </td>
+
+                <td>
+                    <input type="text" class="equipo-input" style="padding: 4px; font-size: 0.75rem; width: 100%; box-sizing: border-box;" value="${cot.numeroNV}" placeholder="N° NV" onchange="window.actualizarCotizacionDesdeDash('${cot.codTienda}', ${cot.eqIndex}, ${cot.cIndex}, 'numeroNV', this.value)">
+                </td>
+                <td>
+                    <input type="date" class="equipo-input" style="padding: 4px; font-size: 0.75rem; width: 100%; box-sizing: border-box;" value="${cot.fechaOC}" onchange="window.actualizarCotizacionDesdeDash('${cot.codTienda}', ${cot.eqIndex}, ${cot.cIndex}, 'fechaOC', this.value)">
+                </td>
+                <td>
+                    <input type="date" class="equipo-input" style="padding: 4px; font-size: 0.75rem; width: 100%; box-sizing: border-box;" value="${cot.fechaEjecucion}" onchange="window.actualizarCotizacionDesdeDash('${cot.codTienda}', ${cot.eqIndex}, ${cot.cIndex}, 'fechaEjecucion', this.value)">
+                </td>
+                <td class="centrado">
+                    <input type="checkbox" style="cursor:pointer; transform: scale(1.3);" ${cot.realizado ? 'checked' : ''} onchange="window.actualizarCotizacionDesdeDash('${cot.codTienda}', ${cot.eqIndex}, ${cot.cIndex}, 'realizado', this.checked)">
+                </td>
+                <td class="centrado">
+                    <input type="checkbox" style="cursor:pointer; transform: scale(1.3);" ${cot.facturado ? 'checked' : ''} onchange="window.actualizarCotizacionDesdeDash('${cot.codTienda}', ${cot.eqIndex}, ${cot.cIndex}, 'facturado', this.checked)">
+                </td>
+                <td>
+                    <input type="date" class="equipo-input" style="padding: 4px; font-size: 0.75rem; width: 100%; box-sizing: border-box;" value="${cot.fechaFacturacion}" onchange="window.actualizarCotizacionDesdeDash('${cot.codTienda}', ${cot.eqIndex}, ${cot.cIndex}, 'fechaFacturacion', this.value)">
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        document.getElementById('dashPagination').style.display = 'flex';
+        document.getElementById('dashPageInfo').innerText = `Página ${window.dashPaginaActual} de ${totalPaginas}`;
+    };
+
+    window.cambiarPaginaDash = function(delta) {
+        const totalPaginas = Math.ceil(window.dashDatosFiltrados.length / window.dashItemsPorPagina);
+        const nuevaPagina = window.dashPaginaActual + delta;
+
+        if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
+            window.dashPaginaActual = nuevaPagina;
+            window.renderizarTablaDashboard();
+        }
+    };
+
+    window.actualizarCotizacionDesdeDash = async function(codTienda, eqIndex, cIndex, campo, valor) {
+        try {
+            const docRef = doc(db, "equipos_locales", codTienda);
+            const docSnap = await getDoc(docRef);
+            
+            if (docSnap.exists()) {
+                let data = docSnap.data();
+                if (data.Equipos && data.Equipos[eqIndex] && data.Equipos[eqIndex].listaCotizaciones[cIndex]) {
+                    data.Equipos[eqIndex].listaCotizaciones[cIndex][campo] = valor;
+                    await setDoc(docRef, { Equipos: data.Equipos }, { merge: true });
+                    
+                    let dashItem = window.dashDatosGlobales.find(item => item.codTienda === codTienda && item.eqIndex === eqIndex && item.cIndex === cIndex);
+                    if (dashItem) {
+                        dashItem[campo] = valor;
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Error al guardar desde dashboard:", error);
+            alert("Hubo un error al guardar el cambio automáticamente. Verifica tu conexión.");
+        }
+    };
+
+    // --- NUEVAS FUNCIONES PARA EL MODAL EXCLUSIVO DEL DASHBOARD ---
+    window.abrirModalCotDash = function(codTienda, eqIndex, cIndex) {
+        window.cotDashContext = { codTienda, eqIndex, cIndex };
+        const cot = window.dashDatosGlobales.find(item => item.codTienda === codTienda && item.eqIndex === eqIndex && item.cIndex === cIndex);
+        
+        if(cot) {
+            document.getElementById('cdLocal').innerText = `${cot.codTienda} - ${cot.nombreTienda}`;
+            document.getElementById('cdEquipo').innerText = cot.equipo;
+            document.getElementById('cdNumero').value = cot.numero === 'S/N' ? '' : cot.numero;
+            document.getElementById('cdMonto').value = cot.monto === '-' ? '' : cot.monto;
+            document.getElementById('cdDetalle').value = cot.detalle;
+            document.getElementById('cdTecnico').value = cot.tecnicoAsignado; 
+            document.getElementById('cdOC').value = cot.numeroOC;
+            document.getElementById('cdReq').value = cot.reqInstalacion;
+            document.getElementById('cdNV').value = cot.numeroNV;
+            document.getElementById('cdFechaOC').value = cot.fechaOC;
+            document.getElementById('cdFechaEjecucion').value = cot.fechaEjecucion;
+            document.getElementById('cdFechaFacturacion').value = cot.fechaFacturacion;
+            document.getElementById('cdTieneOC').checked = !!cot.tieneOC;
+            document.getElementById('cdRealizado').checked = !!cot.realizado;
+            document.getElementById('cdFacturado').checked = !!cot.facturado;
+
+            document.getElementById('cotDashModal').style.display = 'flex';
+        }
+    };
+
+    window.cerrarModalCotDash = function() {
+        document.getElementById('cotDashModal').style.display = 'none';
+    };
+
+    window.guardarModalCotDash = async function() {
+        const { codTienda, eqIndex, cIndex } = window.cotDashContext;
+        const btn = document.getElementById('btnGuardarCotDash');
+        btn.innerText = "Guardando...";
+        btn.disabled = true;
+
+        const nuevosDatos = {
+            numero: document.getElementById('cdNumero').value,
+            monto: document.getElementById('cdMonto').value,
+            detalle: document.getElementById('cdDetalle').value,
+            tecnicoAsignado: document.getElementById('cdTecnico').value, 
+            numeroOC: document.getElementById('cdOC').value,
+            reqInstalacion: document.getElementById('cdReq').value,
+            numeroNV: document.getElementById('cdNV').value,
+            fechaOC: document.getElementById('cdFechaOC').value,
+            fechaEjecucion: document.getElementById('cdFechaEjecucion').value,
+            fechaFacturacion: document.getElementById('cdFechaFacturacion').value,
+            tieneOC: document.getElementById('cdTieneOC').checked,
+            realizado: document.getElementById('cdRealizado').checked,
+            facturado: document.getElementById('cdFacturado').checked
+        };
+
+        try {
+            const docRef = doc(db, "equipos_locales", codTienda);
+            const docSnap = await getDoc(docRef);
+            
+            if (docSnap.exists()) {
+                let data = docSnap.data();
+                if (data.Equipos && data.Equipos[eqIndex] && data.Equipos[eqIndex].listaCotizaciones[cIndex]) {
+                    
+                    data.Equipos[eqIndex].listaCotizaciones[cIndex] = { ...data.Equipos[eqIndex].listaCotizaciones[cIndex], ...nuevosDatos };
+                    await setDoc(docRef, { Equipos: data.Equipos }, { merge: true });
+                    
+                    let dashItem = window.dashDatosGlobales.find(item => item.codTienda === codTienda && item.eqIndex === eqIndex && item.cIndex === cIndex);
+                    if (dashItem) {
+                        Object.assign(dashItem, nuevosDatos);
+                    }
+                    
+                    window.filtrarDashboard(false); 
+                    cerrarModalCotDash();
+                }
+            }
+        } catch (error) {
+            console.error("Error guardando modal dash:", error);
+            alert("Error de conexión al guardar los datos.");
+        } finally {
+            btn.innerText = "Guardar Cambios";
+            btn.disabled = false;
+        }
+    };
+
+    // --- LÓGICA DE LA VENTANA DE EQUIPOS (MODAL GENERAL) ---
+    window.equiposContext = { codTienda: null, mes: null, lista: [] };
+    window.equipoActivoIndex = -1;
+    window.cotizacionesExpandedState = {}; 
+
+    window.abrirEquipos = async function(codTienda, mes) {
+        window.equiposContext = { codTienda, mes, lista: [] };
+        window.equipoActivoIndex = -1;
+        window.cotizacionesExpandedState = {}; 
+        
+        document.getElementById('eqCodTiendaTitulo').innerText = codTienda;
+        document.getElementById('equiposContainer').innerHTML = '<div class="empty-state">Consultando base de datos...</div>';
+        document.getElementById('equiposModal').style.display = 'flex';
+
+        try {
+            let equiposBD = null;
+            const docRefGlobal = doc(db, "equipos_locales", codTienda);
+            const docSnapGlobal = await getDoc(docRefGlobal);
+            
+            if (docSnapGlobal.exists() && docSnapGlobal.data().Equipos) {
+                equiposBD = docSnapGlobal.data().Equipos;
+            } else {
+                const docRefMes = doc(db, `estados_${mes}`, codTienda);
+                const docSnapMes = await getDoc(docRefMes);
+                if (docSnapMes.exists() && docSnapMes.data().Equipos) {
+                    equiposBD = docSnapMes.data().Equipos;
+                }
+            }
+            
+            if (equiposBD) {
+                window.equiposContext.lista = equiposBD.map(eq => {
+                    if (typeof eq === 'string') {
+                        return { nombre: eq, serie: '', observaciones: '', estado: 'Operativo', historial: [], listaCotizaciones: [] };
+                    }
+                    if (!eq.historial) eq.historial = []; 
+                    if (!eq.listaCotizaciones) {
+                        eq.listaCotizaciones = [];
+                        if (eq.cotizaciones && eq.cotizaciones.trim() !== '') {
+                            eq.listaCotizaciones.push({ 
+                                numero: eq.cotizaciones, monto: '', fecha: '', detalle: '', tecnicoAsignado: '', numeroOC: '', 
+                                reqInstalacion: '', numeroNV: '', fechaOC: '', fechaEjecucion: '', 
+                                fechaFacturacion: '', tieneOC: false, realizado: false, facturado: false 
+                            });
+                            eq.cotizaciones = ''; 
+                        }
+                    }
+                    return { 
+                        nombre: eq.nombre || (typeof eq === 'string' ? eq : ''), 
+                        serie: eq.serie || '', 
+                        observaciones: eq.observaciones || '', 
+                        estado: eq.estado || 'Operativo',
+                        historial: eq.historial || [], 
+                        listaCotizaciones: eq.listaCotizaciones || [] 
+                    };
+                });
+            }
+            window.renderizarEquipos();
+        } catch (error) {
+            console.error("Error al obtener equipos:", error);
+            document.getElementById('equiposContainer').innerHTML = '<div class="empty-state" style="color: #ef4444;">Error de conexión.</div>';
+        }
+    };
+
+    window.cerrarEquipos = function() {
+        document.getElementById('equiposModal').style.display = 'none';
+        document.getElementById('nuevoEquipoInput').value = '';
+    };
+
+    // --- NUEVO: ABRIR MODAL DETALLE DE EQUIPO ESPECÍFICO ---
+    window.abrirModalEquipoDetalle = function(index) {
+        window.equipoActivoIndex = index;
+        window.renderizarEquipoDetalle();
+        document.getElementById('modalEquipoDetalle').style.display = 'flex';
+    };
+
+    window.cerrarModalEquipoDetalle = function() {
+        document.getElementById('modalEquipoDetalle').style.display = 'none';
+        window.renderizarEquipos(); 
+    };
+
+    window.toggleCotizacionDetalle = function(cIndex, isOpen) {
+        window.cotizacionesExpandedState[`${window.equipoActivoIndex}_${cIndex}`] = isOpen;
+    };
+
+    // Renderiza la lista principal de botones de equipos
+    window.renderizarEquipos = function() {
+        const container = document.getElementById('equiposContainer');
+        container.innerHTML = '';
+        
+        if (window.equiposContext.lista.length === 0) {
+            container.innerHTML = '<div class="empty-state" style="padding: 20px;">No hay equipos registrados para este local. Agrega uno arriba.</div>';
+            return;
+        }
+
+        window.equiposContext.lista.forEach((equipo, index) => {
+            let badgeClass = equipo.estado === 'Fuera de Servicio' ? 'badge-fs' : (equipo.estado === 'Con observaciones' ? 'badge-obs' : 'badge-op');
+            
+            let cotPendientes = 0;
+            if (equipo.listaCotizaciones) {
+                cotPendientes = equipo.listaCotizaciones.filter(c => !c.realizado).length;
+            }
+
+            const div = document.createElement('div');
+            div.className = 'equipo-card-btn';
+            div.onclick = () => window.abrirModalEquipoDetalle(index);
+
+            div.innerHTML = `
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span>🔧 ${equipo.nombre}</span>
+                    <span class="badge ${badgeClass}">${equipo.estado || 'Operativo'}</span>
+                    ${cotPendientes > 0 ? `<span style="background:#f59e0b; color:white; font-size:0.65rem; padding:2px 6px; border-radius:10px;">${cotPendientes} Cot. Pend.</span>` : ''}
+                </div>
+                <span class="equipo-summary-icon">Editar / Ver ➡️</span>
+            `;
+            container.appendChild(div);
+        });
+    };
+
+    // Renderiza el contenido interno del modal del equipo específico
+    window.renderizarEquipoDetalle = function() {
+        const index = window.equipoActivoIndex;
+        if(index === -1 || !window.equiposContext.lista[index]) return;
+        
+        const equipo = window.equiposContext.lista[index];
+        const container = document.getElementById('equipoDetalleContainer');
+
+        // Historial
+        let historialHTML = '';
+        if (equipo.historial && equipo.historial.length > 0) {
+            equipo.historial.forEach((h, hIndex) => {
+                historialHTML += `
+                    <div class="historial-item">
+                        <div class="historial-item-header">
+                            <span>📅 ${h.fecha} | 👷 ${h.tecnico}</span>
+                            <button class="btn-del-hist" onclick="window.eliminarRegistroHistorial(${hIndex})">Eliminar</button>
+                        </div>
+                        <div>${h.detalle}</div>
+                    </div>
+                `;
+            });
+        } else {
+            historialHTML = '<div style="font-size: 0.75rem; color: #94a3b8; font-style: italic;">Sin intervenciones registradas.</div>';
+        }
+
+        // Cotizaciones (ahora son Acordeones y se omiten las realizadas)
+        let cotizacionesHTML = '';
+        let cotPendientes = 0;
+
+        if (equipo.listaCotizaciones && equipo.listaCotizaciones.length > 0) {
+            equipo.listaCotizaciones.forEach((cot, cIndex) => {
+                // Si la cotización ya está ejecutada, la saltamos para no mostrarla en este modal
+                if (cot.realizado) return; 
+
+                cotPendientes++;
+                const cotKey = `${index}_${cIndex}`;
+                const isCotOpen = window.cotizacionesExpandedState[cotKey] || (!cot.numero && !cot.monto) ? 'open' : '';
+                const mntoStr = window.formatearCLP(cot.monto);
+                
+                cotizacionesHTML += `
+                    <details class="cot-details" ${isCotOpen} ontoggle="window.toggleCotizacionDetalle(${cIndex}, this.open)">
+                        <summary>
+                            <div style="display:flex; gap:10px; align-items:center;">
+                                <span style="color:var(--primary);">📄 N° ${cot.numero || 'S/N'}</span>
+                                <span style="color:var(--secondary); font-weight:700;">${mntoStr !== '-' ? mntoStr : ''}</span>
+                                ${cot.tieneOC ? '<span class="badge badge-op" style="padding:2px 6px; font-size:0.65rem;">Con OC</span>' : '<span class="badge badge-obs" style="padding:2px 6px; font-size:0.65rem;">Pend. OC</span>'}
+                            </div>
+                            <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">Ver / Editar ▼</span>
+                        </summary>
+                        
+                        <div class="cot-details-content">
+                            <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+                                <button class="btn-del-hist" onclick="window.eliminarCotizacion(${cIndex})">🗑️ Borrar Cotización</button>
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 100px 130px; gap: 8px; align-items: center; margin-bottom: 8px;">
+                                <div style="display: flex; gap: 4px;">
+                                    <input type="text" class="equipo-input" value="${cot.numero || ''}" placeholder="N° Cotización" onchange="window.actualizarCotizacion(${cIndex}, 'numero', this.value); window.renderizarEquipoDetalle();" style="flex: 1;">
+                                    <button class="btn-ficha-blue" style="padding: 4px 8px;" onclick="window.abrirFixeatCotizacionValue('${cot.numero || ''}')" title="Buscar Cotización en FIXEAT">🔗</button>
+                                </div>
+                                <input type="text" class="equipo-input" value="${cot.monto || ''}" placeholder="Monto ($)" onchange="window.actualizarCotizacion(${cIndex}, 'monto', this.value); window.renderizarEquipoDetalle();">
+                                <input type="date" class="equipo-input" value="${cot.fecha || ''}" onchange="window.actualizarCotizacion(${cIndex}, 'fecha', this.value)" title="Fecha de emisión">
+                            </div>
+                            
+                            <div style="margin-bottom: 8px;">
+                                <label style="font-size:0.7rem; color:var(--text-muted); font-weight:bold; display:block; margin-bottom:2px;">Repuestos u Observaciones</label>
+                                <input type="text" class="equipo-input" value="${cot.detalle || ''}" placeholder="Ej: Motor ventilador, termostato..." onchange="window.actualizarCotizacion(${cIndex}, 'detalle', this.value)" style="width: 100%;">
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-bottom: 8px; background: #f8fafc; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px;">
+                                <div><label style="font-size:0.7rem; color:var(--text-muted); font-weight:bold; display:block; margin-bottom:2px;">Técnico Asig.</label><input type="text" class="equipo-input" list="listaTecnicos" value="${cot.tecnicoAsignado || ''}" placeholder="Técnico..." onchange="window.actualizarCotizacion(${cIndex}, 'tecnicoAsignado', this.value)"></div>
+                                <div><label style="font-size:0.7rem; color:var(--text-muted); font-weight:bold; display:block; margin-bottom:2px;">N° OC</label><input type="text" class="equipo-input" value="${cot.numeroOC || ''}" placeholder="Ej: OC-123" onchange="window.actualizarCotizacion(${cIndex}, 'numeroOC', this.value)"></div>
+                                <div>
+                                    <label style="font-size:0.7rem; color:var(--text-muted); font-weight:bold; display:block; margin-bottom:2px;">N° Req. Instalación</label>
+                                    <div style="display: flex; gap: 4px;">
+                                        <input type="text" class="equipo-input" value="${cot.reqInstalacion || ''}" placeholder="Ej: REQ-987" onchange="window.actualizarCotizacion(${cIndex}, 'reqInstalacion', this.value)" style="flex: 1;">
+                                        <button class="btn-ficha-blue" style="padding: 4px 8px;" onclick="window.abrirFixeatValue('${cot.reqInstalacion || ''}')" title="Buscar en FIXEAT">🔗</button>
+                                    </div>
+                                </div>
+                                <div><label style="font-size:0.7rem; color:var(--text-muted); font-weight:bold; display:block; margin-bottom:2px;">N° Nota Venta (NV)</label><input type="text" class="equipo-input" value="${cot.numeroNV || ''}" placeholder="Ej: NV-001" onchange="window.actualizarCotizacion(${cIndex}, 'numeroNV', this.value)"></div>
+                                <div><label style="font-size:0.7rem; color:var(--text-muted); font-weight:bold; display:block; margin-bottom:2px;">Fecha Llegada OC</label><input type="date" class="equipo-input" value="${cot.fechaOC || ''}" onchange="window.actualizarCotizacion(${cIndex}, 'fechaOC', this.value)"></div>
+                                <div><label style="font-size:0.7rem; color:var(--text-muted); font-weight:bold; display:block; margin-bottom:2px;">Fecha Ejecución</label><input type="date" class="equipo-input" value="${cot.fechaEjecucion || ''}" onchange="window.actualizarCotizacion(${cIndex}, 'fechaEjecucion', this.value)"></div>
+                                <div><label style="font-size:0.7rem; color:var(--text-muted); font-weight:bold; display:block; margin-bottom:2px;">Fecha Facturación</label><input type="date" class="equipo-input" value="${cot.fechaFacturacion || ''}" onchange="window.actualizarCotizacion(${cIndex}, 'fechaFacturacion', this.value)"></div>
+                            </div>
+
+                            <div class="cot-grid-checks">
+                                <label style="display:flex; align-items:center; gap:6px; cursor:pointer;"><input type="checkbox" style="width:16px; height:16px; cursor:pointer;" ${cot.tieneOC ? 'checked' : ''} onchange="window.actualizarCotizacion(${cIndex}, 'tieneOC', this.checked); window.renderizarEquipoDetalle();"> Tiene OC</label>
+                                <label style="display:flex; align-items:center; gap:6px; cursor:pointer;"><input type="checkbox" style="width:16px; height:16px; cursor:pointer;" ${cot.realizado ? 'checked' : ''} onchange="window.actualizarCotizacion(${cIndex}, 'realizado', this.checked); window.renderizarEquipoDetalle();"> Ejecutado</label>
+                                <label style="display:flex; align-items:center; gap:6px; cursor:pointer;"><input type="checkbox" style="width:16px; height:16px; cursor:pointer;" ${cot.facturado ? 'checked' : ''} onchange="window.actualizarCotizacion(${cIndex}, 'facturado', this.checked)"> Facturado</label>
+                            </div>
+                        </div>
+                    </details>
+                `;
+            });
+        }
+        
+        if (cotPendientes === 0) {
+            cotizacionesHTML = '<div style="font-size: 0.75rem; color: #94a3b8; font-style: italic;">No hay cotizaciones pendientes por ejecutar.</div>';
+        }
+
+        container.innerHTML = `
+            <div class="equipo-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                <div class="equipo-field">
+                    <label>Nombre del Equipo</label>
+                    <input type="text" class="equipo-input" value="${equipo.nombre || ''}" onchange="window.actualizarCampoEquipoActivo('nombre', this.value)" placeholder="Ej: Horno, Visicooler...">
+                </div>
+                <div class="equipo-field">
+                    <label>N° de Serie / Modelo</label>
+                    <input type="text" class="equipo-input" value="${equipo.serie || ''}" onchange="window.actualizarCampoEquipoActivo('serie', this.value)" placeholder="Ej: SN-987654321">
+                </div>
+                <div class="equipo-field">
+                    <label>Estado del Equipo</label>
+                    <select class="equipo-input" onchange="window.actualizarCampoEquipoActivo('estado', this.value)">
+                        <option value="Operativo" ${equipo.estado === 'Operativo' ? 'selected' : ''}>🟢 Operativo</option>
+                        <option value="Con observaciones" ${equipo.estado === 'Con observaciones' ? 'selected' : ''}>🟡 Con observaciones</option>
+                        <option value="Fuera de Servicio" ${equipo.estado === 'Fuera de Servicio' ? 'selected' : ''}>🔴 Fuera de Servicio</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="equipo-field" style="margin-top: 12px;">
+                <label>Observaciones Generales</label>
+                <textarea class="equipo-textarea" rows="2" onchange="window.actualizarCampoEquipoActivo('observaciones', this.value)" placeholder="Estado físico del equipo, notas de precaución...">${equipo.observaciones || ''}</textarea>
+            </div>
+            
+            <div class="cot-section">
+                <div class="historial-title">💰 Seguimiento de Cotizaciones (Solo Pendientes)</div>
+                <div class="historial-list">
+                    ${cotizacionesHTML}
+                </div>
+                <button class="btn-add-hist" style="background: #10b981; margin-top:5px;" onclick="window.agregarCotizacion()">+ Añadir Cotización</button>
+            </div>
+
+            <div class="historial-section">
+                <div class="historial-title">📋 Bitácora de Mantenimiento</div>
+                <div class="historial-list">
+                    ${historialHTML}
+                </div>
+                <div class="add-hist-grid">
+                    <input type="date" id="h_fecha_activo" class="equipo-input">
+                    <input type="text" id="h_tecnico_activo" class="equipo-input" list="listaTecnicos" placeholder="Técnico a cargo">
+                    <input type="text" id="h_detalle_activo" class="equipo-input" placeholder="Detalle intervención..." onkeypress="if(event.key === 'Enter') window.agregarRegistroHistorial()">
+                    <button class="btn-add-hist" onclick="window.agregarRegistroHistorial()">Registrar</button>
+                </div>
+            </div>
+        `;
+    };
+
+    window.agregarEquipo = function() {
+        const input = document.getElementById('nuevoEquipoInput');
+        const nuevoNombreEquipo = input.value.trim();
+        
+        if (nuevoNombreEquipo !== '') {
+            window.equiposContext.lista.unshift({ 
+                nombre: nuevoNombreEquipo,
+                serie: '',
+                observaciones: '',
+                estado: 'Operativo',
+                historial: [],
+                listaCotizaciones: []
+            });
+            input.value = '';
+            input.focus();
+            window.renderizarEquipos();
+        }
+    };
+
+    window.actualizarCampoEquipoActivo = function(campo, valor) {
+        if (window.equipoActivoIndex !== -1) {
+            window.equiposContext.lista[window.equipoActivoIndex][campo] = valor;
+        }
+    };
+
+    window.eliminarEquipoActivo = function() {
+        if(confirm("ATENCIÓN: ¿Estás seguro que deseas eliminar este equipo, sus cotizaciones y todo su historial de forma permanente?")) {
+            window.equiposContext.lista.splice(window.equipoActivoIndex, 1);
+            window.cerrarModalEquipoDetalle();
+        }
+    };
+
+    // --- Funciones de Cotizaciones (Actúan sobre el equipo activo) ---
+    window.agregarCotizacion = function() {
+        const eqIndex = window.equipoActivoIndex;
+        if (!window.equiposContext.lista[eqIndex].listaCotizaciones) {
+            window.equiposContext.lista[eqIndex].listaCotizaciones = [];
+        }
+        window.equiposContext.lista[eqIndex].listaCotizaciones.push({
+            numero: '', monto: '', fecha: '', detalle: '', tecnicoAsignado: '', numeroOC: '', 
+            reqInstalacion: '', numeroNV: '', fechaOC: '', fechaEjecucion: '', fechaFacturacion: '',
+            tieneOC: false, realizado: false, facturado: false
+        });
+        
+        const newCotIndex = window.equiposContext.lista[eqIndex].listaCotizaciones.length - 1;
+        window.cotizacionesExpandedState[`${eqIndex}_${newCotIndex}`] = true; 
+        
+        window.renderizarEquipoDetalle();
+    };
+
+    window.actualizarCotizacion = function(cIndex, campo, valor) {
+        window.equiposContext.lista[window.equipoActivoIndex].listaCotizaciones[cIndex][campo] = valor;
+    };
+
+    window.eliminarCotizacion = function(cIndex) {
+        if(confirm("¿Seguro que deseas borrar esta cotización?")) {
+            window.equiposContext.lista[window.equipoActivoIndex].listaCotizaciones.splice(cIndex, 1);
+            window.renderizarEquipoDetalle();
+        }
+    };
+
+    // --- Funciones del Historial (Actúan sobre el equipo activo) ---
+    window.agregarRegistroHistorial = function() {
+        const inFecha = document.getElementById('h_fecha_activo');
+        const inTecnico = document.getElementById('h_tecnico_activo');
+        const inDetalle = document.getElementById('h_detalle_activo');
+
+        if (!inFecha.value || !inDetalle.value.trim()) {
+            alert("Para registrar en la bitácora, debes ingresar al menos la Fecha y el Detalle de la intervención.");
+            return;
+        }
+
+        const fechaInvertida = inFecha.value.split('-').reverse().join('-');
+
+        if (!window.equiposContext.lista[window.equipoActivoIndex].historial) {
+            window.equiposContext.lista[window.equipoActivoIndex].historial = [];
+        }
+
+        window.equiposContext.lista[window.equipoActivoIndex].historial.unshift({
+            fecha: fechaInvertida,
+            tecnico: inTecnico.value.trim() || 'Sin asignar',
+            detalle: inDetalle.value.trim()
+        });
+
+        window.renderizarEquipoDetalle(); 
+    };
+
+    window.eliminarRegistroHistorial = function(hIndex) {
+        if(confirm("¿Seguro que deseas borrar este registro de la bitácora?")) {
+            window.equiposContext.lista[window.equipoActivoIndex].historial.splice(hIndex, 1);
+            window.renderizarEquipoDetalle();
+        }
+    };
+
+    window.guardarEquipos = async function() {
+        const { codTienda, lista } = window.equiposContext; 
+        const btnGuardar = document.getElementById('btnGuardarEquipos');
+        
+        btnGuardar.innerText = 'Guardando...';
+        btnGuardar.disabled = true;
+
+        try {
+            const docRef = doc(db, "equipos_locales", codTienda);
+            await setDoc(docRef, { Equipos: lista }, { merge: true });
+            cerrarEquipos();
+            
+            procesarDatos(); 
+            if(document.getElementById('vistaDashboard').style.display === 'block') {
+                window.cargarDashboardCotizaciones();
+            }
+            if(document.getElementById('vistaDashboardEquipos').style.display === 'block') {
+                window.cargarDashboardEquipos();
+            }
+        } catch(error) {
+            console.error("Error al guardar la lista de equipos:", error);
+            alert("No se pudieron guardar los equipos. Revisa tu conexión a internet.");
+        } finally {
+            btnGuardar.innerText = 'Guardar Todo en la Nube';
+            btnGuardar.disabled = false;
+        }
+    };
+
+    // --- LÓGICA DE LINKS DE FICHAS DE SERVICIO ---
+
+    window.renderizarLinksFichas = function() {
+        const contenedor = document.getElementById('listaFichasLinks');
+        contenedor.innerHTML = '';
+        
+        if (window.fichaContext.linksFichas.length === 0) {
+            contenedor.innerHTML = '<span style="font-size: 0.8rem; color: #94a3b8; font-style: italic;">No hay links guardados para este local.</span>';
+            return;
+        }
+
+        window.fichaContext.linksFichas.forEach((ficha, index) => {
+            contenedor.innerHTML += `
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                    <a href="${ficha.url}" target="_blank" style="font-size: 0.85rem; color: var(--secondary); text-decoration: none; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 250px;" title="${ficha.nombre}">📄 ${ficha.nombre || 'Archivo adjunto'}</a>
+                    
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-ficha" style="font-size: 0.75rem; padding: 4px 8px;" onclick="window.copiarLinkPortapapeles('${ficha.url}')">🔗 Copiar Link</button>
+                        <button class="btn-ficha" style="color: #ef4444; font-size: 0.75rem; padding: 4px 8px;" onclick="window.eliminarLinkFicha(${index})" title="Eliminar link">🗑️</button>
+                    </div>
+                </div>
+            `;
+        });
+    };
+
+    window.agregarLinkFicha = function() {
+        const nombreInput = document.getElementById('nuevoNombreLink');
+        const urlInput = document.getElementById('nuevoUrlLink');
+        
+        const nombre = nombreInput.value.trim() || 'Ficha de Servicio';
+        const url = urlInput.value.trim();
+
+        if (!url) {
+            alert("Por favor, ingresa o pega el link de descarga.");
+            return;
+        }
+
+        window.fichaContext.linksFichas.push({ nombre, url });
+        nombreInput.value = '';
+        urlInput.value = '';
+        window.renderizarLinksFichas();
+    };
+
+    window.copiarLinkPortapapeles = function(url) {
+        navigator.clipboard.writeText(url).then(() => {
+            alert("¡Link copiado al portapapeles!");
+        }).catch(err => {
+            console.error('Error al copiar: ', err);
+            alert("Tu navegador no soporta la copia automática. Haz clic derecho en el nombre del archivo y selecciona 'Copiar dirección de enlace'.");
+        });
+    };
+
+    window.eliminarLinkFicha = function(index) {
+        if (confirm("¿Estás seguro de que deseas quitar este link? (Recuerda presionar 'Guardar Cambios' en el modal para confirmar la eliminación en la base de datos)")) {
+            window.fichaContext.linksFichas.splice(index, 1);
+            window.renderizarLinksFichas();
+        }
+    };
+
+    // --- LÓGICA PARA ABRIR REQ/COT EN FIXEAT (Sobrecarga de funciones) ---
+    window.abrirFixeat = function(inputId) {
+        const reqInput = document.getElementById(inputId);
+        const reqValue = reqInput ? reqInput.value.trim() : '';
+        if (reqValue !== '') { window.abrirFixeatValue(reqValue); } 
+        else { alert("Primero debes ingresar un número de REQ."); if (reqInput) reqInput.focus(); }
+    };
+    window.abrirFixeatValue = function(reqValue) {
+        if (reqValue !== '') window.open("https://app.fixeat.cl/maquipan/services?tableSearch=" + encodeURIComponent(reqValue), '_blank');
+    };
+
+    window.abrirFixeatCotizacion = function(inputId) {
+        const cotInput = document.getElementById(inputId);
+        const cotValue = cotInput ? cotInput.value.trim() : '';
+        if (cotValue !== '') { window.abrirFixeatCotizacionValue(cotValue); } 
+        else { alert("Primero debes ingresar un número de Cotización."); if (cotInput) cotInput.focus(); }
+    };
+    window.abrirFixeatCotizacionValue = function(cotValue) {
+        if (cotValue !== '') window.open("https://app.fixeat.cl/maquipan/quotes?tableSearch=" + encodeURIComponent(cotValue), '_blank');
+    };
+
+    // --- LÓGICA DEL DASHBOARD DE EQUIPOS ---
+    window.dashEqDatosGlobales = [];
+    window.dashEqDatosFiltrados = [];
+
+    window.cargarDashboardEquipos = async function() {
+        const tbody = document.getElementById('dashEqTableBody');
+        tbody.innerHTML = '<tr><td colspan="8" class="centrado">Consultando estado de equipos...</td></tr>';
+
+        // Mapear nombres de tiendas
+        let mapTiendas = {};
+        datosGlobales.forEach(row => {
+            if(row['CÓDIGO TIENDA'] && row['TIENDA']) {
+                mapTiendas[row['CÓDIGO TIENDA']] = row['TIENDA'];
+            }
+        });
+
+        let arrayEquipos = [];
+        let total = 0, operativos = 0, conObs = 0, fueraServicio = 0;
+
+        try {
+            const querySnapshot = await getDocs(collection(db, "equipos_locales"));
+            
+            querySnapshot.forEach(doc => {
+                const codTienda = doc.id;
+                const nombreTienda = mapTiendas[codTienda] || 'Sin Registro en Planificación';
+                const data = doc.data();
+
+                if(data.Equipos && data.Equipos.length > 0) {
+                    data.Equipos.forEach((eq) => {
+                        const estadoObj = eq.estado || 'Operativo';
+                        
+                        total++;
+                        if (estadoObj === 'Operativo') operativos++;
+                        else if (estadoObj === 'Con observaciones') conObs++;
+                        else if (estadoObj === 'Fuera de Servicio') fueraServicio++;
+
+                        // Preparar HTML de las cotizaciones para este equipo
+                        let cotizacionesHtml = '';
+                        if (eq.listaCotizaciones && eq.listaCotizaciones.length > 0) {
+                            eq.listaCotizaciones.forEach(cot => {
+                                if (cot.numero || cot.detalle || cot.monto) {
+                                    let ocBadge = cot.tieneOC ? '<span style="color:#047857; font-weight:700; font-size:0.7rem;">[Con OC]</span>' : '<span style="color:#b45309; font-weight:700; font-size:0.7rem;">[Pendiente OC]</span>';
+                                    let factBadge = cot.facturado ? '<span style="color:#4f46e5; font-weight:700; font-size:0.7rem;">[Facturado]</span>' : '';
+                                    let montoCLP = window.formatearCLP(cot.monto);
+                                    
+                                    cotizacionesHtml += `
+                                        <div style="margin-bottom:6px; font-size:0.75rem; background:#f8fafc; padding:6px; border-radius:6px; border:1px solid #e2e8f0; line-height:1.4;">
+                                            <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                                                <strong>N° ${cot.numero || 'S/N'} <span style="color:var(--secondary); font-weight:600;">(${montoCLP})</span></strong>
+                                                <div>${ocBadge} ${factBadge}</div>
+                                            </div>
+                                            <div style="color:var(--text-muted);">${cot.detalle || '<i>Sin repuestos descritos</i>'}</div>
+                                        </div>
+                                    `;
+                                }
+                            });
+                        }
+
+                        arrayEquipos.push({
+                            codTienda,
+                            nombreTienda,
+                            equipo: eq.nombre || 'Sin nombre',
+                            serie: eq.serie || '-',
+                            estado: estadoObj,
+                            observaciones: eq.observaciones || '',
+                            cotizacionesHtml: cotizacionesHtml
+                        });
+                    });
+                }
+            });
+
+            // Actualizar KPIs
+            document.getElementById('kpiEqTotal').innerText = total;
+            document.getElementById('kpiEqOp').innerText = operativos;
+            document.getElementById('kpiEqObs').innerText = conObs;
+            document.getElementById('kpiEqFs').innerText = fueraServicio;
+
+            // Ordenar por tienda
+            arrayEquipos.sort((a,b) => a.codTienda.localeCompare(b.codTienda));
+            window.dashEqDatosGlobales = arrayEquipos;
+            window.filtrarDashboardEquipos(); 
+
+        } catch(e) {
+            console.error(e);
+            tbody.innerHTML = '<tr><td colspan="8" class="centrado empty-state" style="color: #ef4444;">Ocurrió un error al cargar los equipos.</td></tr>';
+        }
+    };
+
+    window.filtrarDashboardEquipos = function() {
+        const searchTerm = document.getElementById('dashEqSearchInput').value.toLowerCase();
+        const estadoFiltro = document.getElementById('dashEqStateFilter').value;
+
+        window.dashEqDatosFiltrados = window.dashEqDatosGlobales.filter(eq => {
+            let coincideTexto = true;
+            if (searchTerm !== '') {
+                const textoCompleto = `${eq.codTienda} ${eq.nombreTienda} ${eq.equipo} ${eq.serie} ${eq.observaciones} ${eq.cotizacionesHtml}`.toLowerCase();
+                coincideTexto = textoCompleto.includes(searchTerm);
+            }
+
+            let coincideEstado = (estadoFiltro === 'todos' || eq.estado === estadoFiltro);
+
+            return coincideTexto && coincideEstado;
+        });
+        
+        window.renderizarTablaDashboardEquipos();
+    };
+
+    window.renderizarTablaDashboardEquipos = function() {
+        const tbody = document.getElementById('dashEqTableBody');
+        tbody.innerHTML = '';
+
+        if(window.dashEqDatosFiltrados.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="centrado empty-state">No hay equipos que coincidan con este filtro.</td></tr>';
+            return;
+        }
+
+        window.dashEqDatosFiltrados.forEach(eq => {
+            let badgeClass = eq.estado === 'Fuera de Servicio' ? 'badge-fs' : (eq.estado === 'Con observaciones' ? 'badge-obs' : 'badge-op');
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="fw-bold" style="color: var(--primary); font-size: 0.8rem;">${eq.codTienda}</td>
+                <td style="font-size: 0.8rem; font-weight: 500;">${eq.nombreTienda}</td>
+                <td style="font-size: 0.8rem;">🔧 ${eq.equipo}</td>
+                <td style="font-size: 0.75rem; color: var(--text-muted);">${eq.serie}</td>
+                <td class="centrado">
+                    <span class="badge ${badgeClass}">${eq.estado}</span>
+                </td>
+                <td style="vertical-align: top;">
+                    ${eq.cotizacionesHtml || '<span style="font-style:italic; font-size:0.75rem; color:#94a3b8;">Sin cotizaciones</span>'}
+                </td>
+                <td style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.3; vertical-align: top;">
+                    ${eq.observaciones || '<span style="font-style:italic;">Sin observaciones</span>'}
+                </td>
+                <td class="centrado">
+                    <button class="btn-ficha-blue" onclick="window.abrirEquipos('${eq.codTienda}', document.getElementById('monthSelect').value || '')" title="Abrir y gestionar equipos de este local">
+                        🔧 Ver Local
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    };
+
+    // --- LÓGICA DE GESTIÓN DE LOCALES MANUALES ---
+    
+    function obtenerMesInteligente(mesBuscado) {
+        const mesesExistentes = [...new Set(datosGlobales.map(r => r.MES).filter(Boolean))];
+        const match = mesesExistentes.find(m => m.toLowerCase() === mesBuscado.toLowerCase());
+        return match ? match : mesBuscado;
+    }
+
+    window.agregarLocalManual = async function() {
+        let mes = document.getElementById('nlMes').value.trim();
+        const fecha = document.getElementById('nlFecha').value;
+        const cod = document.getElementById('nlCod').value.trim();
+        const nombre = document.getElementById('nlNombre').value.trim();
+        const zonal = document.getElementById('nlZonal').value.trim();
+
+        if(!mes || !cod || !nombre) {
+            alert("Los campos 'Mes Operativo', 'Cód. Tienda' y 'Nombre Tienda' son obligatorios.");
+            return;
+        }
+
+        mes = obtenerMesInteligente(mes); 
+
+        const existe = datosGlobales.find(r => r.MES === mes && r['CÓDIGO TIENDA'] === cod);
+        if(existe) {
+            alert("Ya existe un local registrado con ese código en ese mes.");
+            return;
+        }
+
+        let fechaStr = '';
+        if(fecha) {
+            fechaStr = fecha.split('-').reverse().join('-'); 
+        }
+
+        const nuevoRegistro = {
+            'MES': mes,
+            'FECHA INICIO': fechaStr,
+            'CÓDIGO TIENDA': cod,
+            'TIENDA': nombre,
+            'JEFE ZONAL': zonal
+        };
+
+        datosGlobales.push(nuevoRegistro);
+        
+        try {
+            await setDoc(doc(db, "sistema", "datosGlobales"), { excelJson: JSON.stringify(datosGlobales) });
+            alert("Local agregado exitosamente a la base de datos.");
+            
+            document.getElementById('nlCod').value = '';
+            document.getElementById('nlNombre').value = '';
+            
+            actualizarSelectorMeses(datosGlobales);
+            window.renderizarTablaLocales();
+            
+            if(document.getElementById('monthSelect').value === mes || document.getElementById('monthSelect').value === '') {
+                document.getElementById('monthSelect').value = mes;
+                procesarDatos(); 
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Error de red al guardar en la nube.");
+            datosGlobales.pop(); 
+        }
+    };
+
+    window.renderizarTablaLocales = function() {
+        const tbody = document.getElementById('tbodyLocalesMain');
+        const term = document.getElementById('searchLocales').value.toLowerCase();
+        tbody.innerHTML = '';
+        
+        if(datosGlobales.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No hay locales registrados en el sistema global. Sube un Excel o añade uno manualmente.</td></tr>';
+            return;
+        }
+
+        let datos = [...datosGlobales].reverse();
+        
+        if(term !== '') {
+            datos = datos.filter(r => 
+                (r.MES || '').toLowerCase().includes(term) ||
+                (r['CÓDIGO TIENDA'] || '').toLowerCase().includes(term) ||
+                (r['TIENDA'] || '').toLowerCase().includes(term) ||
+                (r['JEFE ZONAL'] || '').toLowerCase().includes(term)
+            );
+        }
+
+        if(datos.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No se encontraron resultados para tu búsqueda.</td></tr>';
+            return;
+        }
+
+        // AGRUPAR LOCALES POR CÓDIGO
+        let mapLocales = {};
+        datos.forEach(row => {
+            let cod = row['CÓDIGO TIENDA'];
+            if(!cod) return;
+            if(!mapLocales[cod]) {
+                mapLocales[cod] = {
+                    codTienda: cod,
+                    nombreTienda: row['TIENDA'] || '',
+                    jefeZonal: row['JEFE ZONAL'] || '',
+                    meses: new Set()
+                };
+            }
+            if(row.MES) mapLocales[cod].meses.add(row.MES);
+        });
+
+        let datosAgrupados = Object.values(mapLocales);
+
+        datosAgrupados.forEach((row) => {
+            const tr = document.createElement('tr');
+            
+            let mesesHtml = Array.from(row.meses).map(m => `<span class="badge" style="background:#e0e7ff; color:#3730a3; border:1px solid #c7d2fe; margin:2px;">${m}</span>`).join('');
+
+            tr.innerHTML = `
+                <td class="fw-bold" style="color:var(--primary); font-size: 0.85rem;">${row.codTienda}</td>
+                <td style="font-size: 0.85rem;">${row.nombreTienda}</td>
+                <td style="font-size: 0.85rem;">${row.jefeZonal}</td>
+                <td><div style="display:flex; flex-wrap:wrap; gap:4px;">${mesesHtml}</div></td>
+                <td class="centrado">
+                    <div style="display:flex; gap:4px; justify-content:center;">
+                        <button class="btn-ficha" style="color:var(--secondary); padding:4px 8px; font-size:0.75rem;" onclick="window.abrirModalEditarLocal('${row.codTienda}')" title="Editar Nombre, Zonal y Meses">✏️ Editar</button>
+                        <button class="btn-equipos" style="padding:4px 8px; font-size:0.75rem;" onclick="window.abrirEquipos('${row.codTienda}', document.getElementById('monthSelect').value || '')" title="Ver equipos del local">🔧 Equipos</button>
+                        <button class="btn-ficha" style="color:#10b981; background-color: #d1fae5; border: 1px solid #10b981; padding:4px 8px; font-size:0.75rem;" onclick="window.generarInformePDF('${row.codTienda}', '${row.nombreTienda}', '${row.jefeZonal}')" title="Descargar informe completo del local en PDF">📄 PDF</button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    };
+
+    window.eliminarLocalGlobal = async function(cod) {
+        if(confirm(`ATENCIÓN:\n¿Estás seguro que deseas eliminar el local ${cod} de TODOS los meses programados en la planificación global?\n\n(Esto lo quitará de la vista principal y dashboards).`)) {
+            
+            const originalLength = datosGlobales.length;
+            datosGlobales = datosGlobales.filter(r => r['CÓDIGO TIENDA'] !== cod);
+            
+            if(originalLength !== datosGlobales.length) {
+                try {
+                    await setDoc(doc(db, "sistema", "datosGlobales"), { excelJson: JSON.stringify(datosGlobales) });
+                    actualizarSelectorMeses(datosGlobales);
+                    window.renderizarTablaLocales();
+                    procesarDatos(); 
+                    if(document.getElementById('vistaDashboard').style.display === 'block') window.cargarDashboardCotizaciones();
+                    if(document.getElementById('vistaDashboardEquipos').style.display === 'block') window.cargarDashboardEquipos();
+                } catch (error) {
+                    console.error(error);
+                    alert("Hubo un error de conexión al intentar borrar el local.");
+                }
+            }
+        }
+    };
+
+    // --- LÓGICA DE EDICIÓN DE LOCALES (MODAL MEJORADO CON MESES) ---
+    window.localEditContext = { cod: null, meses: [] };
+
+    window.abrirModalEditarLocal = function(cod) {
+        window.localEditContext.cod = cod; 
+        
+        const records = datosGlobales.filter(r => r['CÓDIGO TIENDA'] === cod);
+        if(records.length > 0) {
+            document.getElementById('elCod').value = cod;
+            document.getElementById('elNombre').value = records[0]['TIENDA'] || '';
+            document.getElementById('elZonal').value = records[0]['JEFE ZONAL'] || '';
+            
+            window.localEditContext.meses = records.map(r => {
+                let fechaInput = '';
+                if(r['FECHA INICIO'] && r['FECHA INICIO'].includes('-')) {
+                    const parts = r['FECHA INICIO'].split('-');
+                    if(parts[0].length === 2 && parts[2].length === 4) {
+                        fechaInput = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                    } else if(parts[0].length === 4) {
+                        fechaInput = r['FECHA INICIO'];
+                    }
+                }
+                return { mes: r.MES, fechaInicio: fechaInput };
+            });
+
+            window.renderizarMesesEditLocal();
+            document.getElementById('modalEditLocal').style.display = 'flex';
+        }
+    };
+
+    window.cerrarModalEditarLocal = function() {
+        document.getElementById('modalEditLocal').style.display = 'none';
+        document.getElementById('elNuevoMes').value = '';
+        if(document.getElementById('elNuevaFecha')) document.getElementById('elNuevaFecha').value = '';
+    };
+
+    window.actualizarFechaMesLocal = function(index, nuevaFecha) {
+        window.localEditContext.meses[index].fechaInicio = nuevaFecha;
+    };
+
+    window.renderizarMesesEditLocal = function() {
+        const container = document.getElementById('elListaMeses');
+        container.innerHTML = '';
+        if (window.localEditContext.meses.length === 0) {
+            container.innerHTML = '<span style="font-size:0.8rem; color:#ef4444; font-weight:bold;">⚠️ El local se borrará por completo si guardas sin ningún mes asignado.</span>';
+            return;
+        }
+        window.localEditContext.meses.forEach((m, index) => {
+            container.innerHTML += `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:#ffffff; padding:8px 10px; border-radius:6px; border:1px solid #cbd5e1; gap: 10px;">
+                    <span style="font-size:0.85rem; font-weight:600; color:var(--primary); flex: 1;">${m.mes}</span>
+                    <input type="date" class="equipo-input" style="padding: 4px 8px; width: 130px;" value="${m.fechaInicio}" onchange="window.actualizarFechaMesLocal(${index}, this.value)" title="Fecha programada">
+                    <button class="btn-del-hist" onclick="window.eliminarMesEditLocal(${index})" title="Quitar este mes">🗑️ Quitar</button>
+                </div>
+            `;
+        });
+    };
+
+    window.agregarMesEditLocal = function() {
+        let nuevoMes = document.getElementById('elNuevoMes').value.trim();
+        let nuevaFecha = document.getElementById('elNuevaFecha').value; 
+
+        if (!nuevoMes) {
+            alert("Ingresa un nombre de mes.");
+            return;
+        }
+
+        nuevoMes = obtenerMesInteligente(nuevoMes).toUpperCase();
+
+        if (window.localEditContext.meses.some(m => m.mes.toUpperCase() === nuevoMes)) {
+            alert(`El mes ${nuevoMes} ya está asignado a este local.`);
+            return;
+        }
+
+        window.localEditContext.meses.push({ mes: nuevoMes, fechaInicio: nuevaFecha });
+        document.getElementById('elNuevoMes').value = '';
+        document.getElementById('elNuevaFecha').value = '';
+        window.renderizarMesesEditLocal();
+    };
+
+    window.eliminarMesEditLocal = function(index) {
+        window.localEditContext.meses.splice(index, 1);
+        window.renderizarMesesEditLocal();
+    };
+
+    window.guardarModalEditarLocal = async function() {
+        const cod = window.localEditContext.cod;
+        if(!cod) return;
+
+        const nombre = document.getElementById('elNombre').value.trim();
+        const zonal = document.getElementById('elZonal').value.trim();
+
+        if(!nombre) {
+            alert("El Nombre de la Tienda es obligatorio.");
+            return;
+        }
+
+        const btn = document.getElementById('btnGuardarEditLocal');
+        btn.innerText = "Guardando...";
+        btn.disabled = true;
+
+        datosGlobales = datosGlobales.filter(r => r['CÓDIGO TIENDA'] !== cod);
+
+        window.localEditContext.meses.forEach(m => {
+            let fechaStr = '';
+            if(m.fechaInicio) {
+                fechaStr = m.fechaInicio.split('-').reverse().join('-');
+            }
+
+            datosGlobales.push({
+                'MES': m.mes,
+                'FECHA INICIO': fechaStr,
+                'CÓDIGO TIENDA': cod,
+                'TIENDA': nombre,
+                'JEFE ZONAL': zonal
+            });
+        });
+
+        try {
+            await setDoc(doc(db, "sistema", "datosGlobales"), { excelJson: JSON.stringify(datosGlobales) });
+            window.cerrarModalEditarLocal();
+            actualizarSelectorMeses(datosGlobales);
+            window.renderizarTablaLocales();
+            procesarDatos();
+        } catch (error) {
+            console.error(error);
+            alert("Error al actualizar la información en la nube.");
+        } finally {
+            btn.innerText = "Guardar Cambios";
+            btn.disabled = false;
+        }
+    };
+    
+    // --- EXPORTACIÓN A EXCEL CON ESTILOS PROFESIONALES ---
+    window.exportarExcelCotizaciones = function() {
+        if (!window.dashDatosFiltrados || window.dashDatosFiltrados.length === 0) {
+            alert("No hay datos para exportar. Ajusta los filtros e intenta de nuevo.");
+            return;
+        }
+
+        const dataParaExcel = window.dashDatosFiltrados.map(cot => ({
+            "Cód. Local": cot.codTienda,
+            "Nombre Tienda": cot.nombreTienda,
+            "Equipo": cot.equipo,
+            "N° Cotización": cot.numero !== 'S/N' ? cot.numero : '',
+            "Monto": cot.monto !== '-' ? cot.monto : '',
+            "Repuestos / Obs.": cot.detalle,
+            "Técnico Asig.": cot.tecnicoAsignado,
+            "Tiene OC": cot.tieneOC ? "Sí" : "No",
+            "N° OC": cot.numeroOC,
+            "N° Req. Instalación": cot.reqInstalacion,
+            "N° NV": cot.numeroNV,
+            "Fecha OC": cot.fechaOC,
+            "Fecha Ejecución": cot.fechaEjecucion,
+            "Ejecutado": cot.realizado ? "Sí" : "No",
+            "Facturado": cot.facturado ? "Sí" : "No",
+            "Fecha Facturación": cot.fechaFacturacion
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(dataParaExcel);
+
+        // 1. Configurar ancho de columnas
+        const colWidths = [
+            { wch: 12 }, { wch: 30 }, { wch: 22 }, { wch: 15 }, 
+            { wch: 15 }, { wch: 40 }, { wch: 20 }, { wch: 12 }, 
+            { wch: 15 }, { wch: 20 }, { wch: 15 }, { wch: 15 }, 
+            { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 18 }
+        ];
+        ws['!cols'] = colWidths;
+
+        // 2. Aplicar estilos celda por celda
+        const range = XLSX.utils.decode_range(ws['!ref']);
+        for (let R = range.s.r; R <= range.e.r; ++R) {
+            for (let C = range.s.c; C <= range.e.c; ++C) {
+                const cellAddress = XLSX.utils.encode_cell({r: R, c: C});
+                if (!ws[cellAddress]) continue;
+
+                // Estilo base
+                let cellStyle = {
+                    font: { name: "Arial", sz: 10 },
+                    border: {
+                        top: { style: "thin", color: { rgb: "CBD5E1" } },
+                        bottom: { style: "thin", color: { rgb: "CBD5E1" } },
+                        left: { style: "thin", color: { rgb: "CBD5E1" } },
+                        right: { style: "thin", color: { rgb: "CBD5E1" } }
+                    },
+                    alignment: { vertical: "center", wrapText: true }
+                };
+
+                // Estilo Encabezado vs Datos
+                if (R === 0) {
+                    cellStyle.fill = { fgColor: { rgb: "0F172A" } }; // Fondo azul oscuro
+                    cellStyle.font = { name: "Arial", sz: 11, bold: true, color: { rgb: "FFFFFF" } };
+                    cellStyle.alignment = { horizontal: "center", vertical: "center", wrapText: true };
+                } else {
+                    if (R % 2 !== 0) cellStyle.fill = { fgColor: { rgb: "F1F5F9" } }; // Fila intercalada
+                    
+                    // Centrar columnas específicas (Ej: Códigos, Fechas, Checks)
+                    if ([0, 3, 4, 7, 8, 9, 10, 11, 12, 13, 14, 15].includes(C)) {
+                        cellStyle.alignment.horizontal = "center";
+                    }
+                }
+                ws[cellAddress].s = cellStyle;
+            }
+        }
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Cotizaciones");
+        XLSX.writeFile(wb, "Reporte_Cotizaciones.xlsx");
+    };
+
+    window.exportarExcelEquipos = function() {
+        if (!window.dashEqDatosFiltrados || window.dashEqDatosFiltrados.length === 0) {
+            alert("No hay datos de equipos para exportar.");
+            return;
+        }
+
+        const dataParaExcel = window.dashEqDatosFiltrados.map(eq => ({
+            "Cód. Local": eq.codTienda,
+            "Nombre Tienda": eq.nombreTienda,
+            "Equipo": eq.equipo,
+            "N° Serie": eq.serie,
+            "Estado Actual": eq.estado,
+            "Observaciones": eq.observaciones
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(dataParaExcel);
+
+        // 1. Configurar ancho de columnas
+        const colWidths = [
+            { wch: 12 }, { wch: 35 }, { wch: 25 }, 
+            { wch: 20 }, { wch: 20 }, { wch: 60 }
+        ];
+        ws['!cols'] = colWidths;
+
+        // 2. Aplicar estilos celda por celda
+        const range = XLSX.utils.decode_range(ws['!ref']);
+        for (let R = range.s.r; R <= range.e.r; ++R) {
+            for (let C = range.s.c; C <= range.e.c; ++C) {
+                const cellAddress = XLSX.utils.encode_cell({r: R, c: C});
+                if (!ws[cellAddress]) continue;
+
+                let cellStyle = {
+                    font: { name: "Arial", sz: 10 },
+                    border: {
+                        top: { style: "thin", color: { rgb: "CBD5E1" } },
+                        bottom: { style: "thin", color: { rgb: "CBD5E1" } },
+                        left: { style: "thin", color: { rgb: "CBD5E1" } },
+                        right: { style: "thin", color: { rgb: "CBD5E1" } }
+                    },
+                    alignment: { vertical: "center", wrapText: true }
+                };
+
+                if (R === 0) {
+                    cellStyle.fill = { fgColor: { rgb: "0F172A" } };
+                    cellStyle.font = { name: "Arial", sz: 11, bold: true, color: { rgb: "FFFFFF" } };
+                    cellStyle.alignment = { horizontal: "center", vertical: "center", wrapText: true };
+                } else {
+                    if (R % 2 !== 0) cellStyle.fill = { fgColor: { rgb: "F1F5F9" } };
+                    
+                    // Lógica para dar color al estado del equipo
+                    if (C === 4) {
+                        cellStyle.alignment.horizontal = "center";
+                        cellStyle.font.bold = true;
+                        if (ws[cellAddress].v === "Operativo") cellStyle.font.color = { rgb: "047857" };
+                        else if (ws[cellAddress].v === "Con observaciones") cellStyle.font.color = { rgb: "B45309" };
+                        else if (ws[cellAddress].v === "Fuera de Servicio") cellStyle.font.color = { rgb: "B91C1C" };
+                    }
+                    if (C === 0 || C === 3) cellStyle.alignment.horizontal = "center";
+                }
+                ws[cellAddress].s = cellStyle;
+            }
+        }
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Estado_Equipos");
+        XLSX.writeFile(wb, "Reporte_Estado_Equipos.xlsx");
+    };
+
+    // --- GENERACIÓN DE INFORME PDF POR LOCAL ---
+    window.generarInformePDF = async function(codTienda, nombreTienda, jefeZonal) {
+        try {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF();
+
+            // Colores corporativos (basados en tu UI)
+            const colorPrimario = [15, 23, 42];    // #0f172a
+            const colorFondoHead = [59, 130, 246]; // #3b82f6
+
+            // --- CABECERA DEL INFORME ---
+            pdf.setFontSize(18);
+            pdf.setTextColor(colorPrimario[0], colorPrimario[1], colorPrimario[2]);
+            pdf.setFont("helvetica", "bold");
+            pdf.text("INFORME TÉCNICO DE MANTENIMIENTO", 14, 22);
+
+            pdf.setFontSize(10);
+            pdf.setFont("helvetica", "normal");
+            pdf.setTextColor(100, 116, 139); // Gris muteado
+            pdf.text("Generado por: Supervisión Técnica Nacional", 14, 30);
+            pdf.text(`Fecha de emisión: ${new Date().toLocaleDateString('es-CL')}`, 14, 35);
+
+            // Línea separadora
+            pdf.setDrawColor(226, 232, 240);
+            pdf.line(14, 40, 196, 40); 
+
+            // --- DATOS DEL LOCAL ---
+            pdf.setFontSize(12);
+            pdf.setTextColor(colorPrimario[0], colorPrimario[1], colorPrimario[2]);
+            pdf.setFont("helvetica", "bold");
+            pdf.text("Información de la Sucursal", 14, 50);
+            
+            pdf.setFontSize(10);
+            pdf.setFont("helvetica", "normal");
+            pdf.setTextColor(51, 65, 85);
+            pdf.text(`Código de Tienda: ${codTienda}`, 14, 57);
+            pdf.text(`Nombre de Tienda: ${nombreTienda}`, 14, 63);
+            pdf.text(`Responsable Zonal: ${jefeZonal}`, 14, 69);
+
+            // --- EXTRACCIÓN DE DATOS DE EQUIPOS Y COTIZACIONES ---
+            const docRef = doc(db, "equipos_locales", codTienda);
+            const docSnap = await getDoc(docRef);
+            let tablaEquipos = [];
+
+            if (docSnap.exists() && docSnap.data().Equipos) {
+                const equiposData = docSnap.data().Equipos;
+                equiposData.forEach(eq => {
+                    
+                    // 1. Construir el texto agrupado de las cotizaciones para este equipo
+                    let cotizacionesText = '';
+                    if (eq.listaCotizaciones && eq.listaCotizaciones.length > 0) {
+                        eq.listaCotizaciones.forEach(cot => {
+                            
+                            // NUEVA REGLA: Si la cotización está facturada, la omitimos del PDF
+                            if (cot.facturado) return; 
+
+                            if (cot.numero || cot.detalle || cot.monto) {
+                                let numStr = cot.numero || 'S/N';
+                                let montoStr = (cot.monto && cot.monto !== '-') ? window.formatearCLP(cot.monto) : '';
+                                
+                                // Determinar el estado de la cotización
+                                let estadoCot = "Pendiente OC";
+                                if (cot.realizado) estadoCot = "Ejecutado";
+                                else if (cot.tieneOC) estadoCot = "Con OC";
+                                
+                                cotizacionesText += `• Cot. N° ${numStr} ${montoStr ? '('+montoStr+')' : ''} [${estadoCot}]\n  Repuestos: ${cot.detalle || 'Sin detalle'}\n\n`;
+                            }
+                        });
+                    }
+                    
+                    // Si no hay texto (ya sea porque no hay cotizaciones o porque todas están facturadas)
+                    if (cotizacionesText.trim() === '') {
+                        cotizacionesText = 'Sin cotizaciones pendientes o en ejecución.';
+                    }
+
+                    // 2. Empujar la fila con la nueva columna
+                    tablaEquipos.push([
+                        eq.nombre || 'S/N',
+                        eq.serie || '-',
+                        eq.estado || 'Operativo',
+                        eq.observaciones || 'Sin observaciones',
+                        cotizacionesText.trim()
+                    ]);
+                });
+            }
+
+            // Si el local no tiene equipos
+            if (tablaEquipos.length === 0) {
+                tablaEquipos.push(["No hay equipos registrados en plataforma", "-", "-", "-", "-"]);
+            }
+
+            // --- GENERACIÓN DE TABLA AUTO-ESTILIZADA ---
+            pdf.autoTable({
+                startY: 77,
+                head: [['Equipo / Máquina', 'N° Serie', 'Estado Actual', 'Observaciones', 'Cotizaciones Pendientes / Ejecutadas']],
+                body: tablaEquipos,
+                theme: 'grid',
+                headStyles: { 
+                    fillColor: colorFondoHead, 
+                    textColor: 255, 
+                    fontSize: 9,
+                    fontStyle: 'bold',
+                    halign: 'center'
+                },
+                bodyStyles: { fontSize: 8, textColor: [51, 65, 85], valign: 'middle' },
+                alternateRowStyles: { fillColor: [248, 250, 252] }, 
+                columnStyles: {
+                    0: { cellWidth: 28, fontStyle: 'bold' },
+                    1: { cellWidth: 25, halign: 'center' },
+                    2: { cellWidth: 25, halign: 'center', fontStyle: 'bold' },
+                    3: { cellWidth: 40 },
+                    4: { cellWidth: 'auto' } 
+                },
+                didParseCell: function (data) {
+                    // Colorear el texto de la celda de ESTADO dinámicamente
+                    if (data.section === 'body' && data.column.index === 2) {
+                        const estado = data.cell.raw;
+                        if (estado === 'Operativo') {
+                            data.cell.styles.textColor = [16, 185, 129]; // Verde éxito
+                        } else if (estado === 'Con observaciones') {
+                            data.cell.styles.textColor = [217, 119, 6]; // Naranja advertencia
+                        } else if (estado === 'Fuera de Servicio') {
+                            data.cell.styles.textColor = [239, 68, 68]; // Rojo peligro
+                        }
+                    }
+                }
+            });
+
+            // --- PIE DE PÁGINA CON NUMERACIÓN ---
+            const pageCount = pdf.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                pdf.setPage(i);
+                pdf.setFontSize(8);
+                pdf.setTextColor(148, 163, 184);
+                
+                // Texto centrado en el pie
+                const textoPie = `Página ${i} de ${pageCount} - Documento de uso interno y para el cliente.`;
+                const textWidth = pdf.getStringUnitWidth(textoPie) * pdf.internal.getFontSize() / pdf.internal.scaleFactor;
+                const textOffset = (pdf.internal.pageSize.getWidth() - textWidth) / 2;
+                
+                pdf.text(textoPie, textOffset, pdf.internal.pageSize.getHeight() - 10);
+            }
+
+            // Descargar el archivo al PC del usuario
+            pdf.save(`Informe_Tecnico_${codTienda}_${nombreTienda.replace(/\s+/g, '_')}.pdf`);
+            
+        } catch (error) {
+            console.error("Error al generar PDF:", error);
+            alert("Hubo un error al compilar el informe. Revisa tu conexión a internet.");
+        }
+    };
+</script>
+
+</body>
+</html>
