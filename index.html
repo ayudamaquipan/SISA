@@ -462,6 +462,8 @@
             <div class="control-group"><label>Cód. Tienda</label><input type="text" id="nlCod" class="search-input" placeholder="Ej: T-001" style="min-width: 120px;"></div>
             <div class="control-group"><label>Nombre Tienda</label><input type="text" id="nlNombre" class="search-input" placeholder="Ej: Local Centro" style="min-width: 200px;"></div>
             <div class="control-group"><label>Resp. Zonal</label><input type="text" id="nlZonal" class="search-input" placeholder="Ej: Juan Perez" style="min-width: 150px;"></div>
+            <div class="control-group"><label>Correo Zonal</label><input type="email" id="nlCorreo" class="search-input" placeholder="correo@empresa.com" style="min-width: 150px;"></div>
+            <div class="control-group"><label>Teléfono Zonal</label><input type="text" id="nlTelefono" class="search-input" placeholder="+569..." style="min-width: 120px;"></div>
             
             <button class="btn-action btn-save" onclick="window.agregarLocalManual()" style="height: 36px; padding: 0 20px;">Guardar Local</button>
         </div>
@@ -489,8 +491,12 @@
         <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0;">Actualiza el nombre, responsable y los <b>meses/fechas</b> programadas.</p>
         <div class="equipo-field" style="margin-top: 5px;"><label>Cód. Tienda (Identificador)</label><input type="text" id="elCod" class="equipo-input" disabled style="background-color: #f1f5f9; cursor: not-allowed;"></div>
         <div class="equipo-field"><label>Nombre Tienda</label><input type="text" id="elNombre" class="equipo-input"></div>
-        <div class="equipo-field"><label>Resp. Zonal</label><input type="text" id="elZonal" class="equipo-input"></div>
-        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed var(--border);">
+<div class="equipo-field"><label>Resp. Zonal</label><input type="text" id="elZonal" class="equipo-input"></div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 5px;">
+            <div class="equipo-field"><label>Correo Zonal</label><input type="email" id="elCorreo" class="equipo-input" placeholder="correo@empresa.com"></div>
+            <div class="equipo-field"><label>Teléfono Zonal</label><input type="text" id="elTelefono" class="equipo-input" placeholder="+569..."></div>
+        </div>    
+    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed var(--border);">
             <label style="font-weight: 700; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; display: block; margin-bottom: 8px;">Meses y Fechas Programadas</label>
             <div id="elListaMeses" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; max-height: 200px; overflow-y: auto; padding-right: 5px;"></div>
             <div style="display: flex; gap: 6px; align-items: center; background: #f1f5f9; padding: 10px; border-radius: 8px; border: 1px dashed #cbd5e1; flex-wrap: wrap;">
@@ -1079,9 +1085,10 @@ cotPendientesHTML += `<div style="margin-bottom:4px; font-weight:600; display:fl
             tr.setAttribute('data-fecha', row._sortMs);
             tr.innerHTML = `
                 <td class="centrado">
-                    <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
+                    <div style="display: flex; gap: 4px; justify-content: center; align-items: center; flex-wrap: wrap; max-width: 170px;">
                         <button class="btn-ficha" onclick="window.abrirFicha('${codTienda}', '${fechaStr}', '${tiendaStr}', '${zonalStr}', '${mesSeleccionado}')">📝 Ficha</button>
                         <button class="btn-equipos" onclick="window.abrirEquipos('${codTienda}', '${mesSeleccionado}')">🔧 Equipos</button>
+                        <button class="btn-ficha" style="color:#0284c7; background-color: #e0f2fe; border: 1px solid #0ea5e9; padding:4px 8px; font-size:0.75rem;" onclick="window.enviarCorreoLocal('${codTienda}', '${tiendaStr}', '${zonalStr}')">📧 Correo</button>
                     </div>
                 </td>
                 <td class="centrado">
@@ -1095,14 +1102,15 @@ cotPendientesHTML += `<div style="margin-bottom:4px; font-weight:600; display:fl
                         <button class="btn-ficha-blue" style="padding: 6px 8px; height: 32px; font-size: 0.9rem;" onclick="window.abrirFixeat('req_${codTienda}')">🔗</button>
                     </div>
                 </td>
-                <td class="centrado" style="min-width: 160px; vertical-align: top;">
-                    <div id="equipos_cot_${codTienda}" style="font-size: 0.75rem; color: #b45309; background: #fef3c7; border: 1px solid #fde68a; border-radius: 4px; padding: 4px; margin-bottom: 4px; display: ${displayCotStyle}; text-align: left; max-height: 80px; overflow-y: auto;">
-                        ${cotPendientesHTML}
-                    </div>
-                    <div style="display: flex; gap: 4px; align-items: center;">
-                        <textarea id="cot_${codTienda}" class="input-manual" rows="1" style="width: 100%;" onchange="window.guardarCampoManual(this, 'NumCot', '${codTienda}', '${mesSeleccionado}')" placeholder="Otras..."></textarea>
-                        <button class="btn-ficha-blue" style="padding: 6px 8px; height: 32px; font-size: 0.9rem;" onclick="window.abrirFixeatCotizacion('cot_${codTienda}')">🔗</button>
-                    </div>
+                <td class="centrado" style="min-width: 160px; vertical-align: middle;">
+                    ${cotPendientesHTML !== '' 
+                        ? `<div id="equipos_cot_${codTienda}" style="font-size: 0.75rem; color: #b45309; background: #fef3c7; border: 1px solid #fde68a; border-radius: 4px; padding: 4px; text-align: left; max-height: 80px; overflow-y: auto;">
+                            ${cotPendientesHTML}
+                           </div>` 
+                        : `<div style="font-size: 0.75rem; color: var(--text-muted); background: #f8fafc; border: 1px dashed var(--border); border-radius: 4px; padding: 6px; font-style: italic;">
+                            Sin cotizaciones
+                           </div>`
+                    }
                 </td>
                 <td><textarea id="obs_${codTienda}" class="input-manual input-obs" rows="1" onchange="window.guardarCampoManual(this, 'Observaciones', '${codTienda}', '${mesSeleccionado}')"></textarea></td>
                 <td class="centrado"><label class="toggle-switch"><input type="checkbox" id="realizado_${codTienda}" onchange="window.guardarEstado(this, 'Realizado', '${codTienda}', '${mesSeleccionado}')"><span class="slider"></span></label></td>
@@ -1812,16 +1820,18 @@ cotPendientesHTML += `<div style="margin-bottom:4px; font-weight:600; display:fl
 
     window.agregarLocalManual = async function() {
         let mes = document.getElementById('nlMes').value.trim(); const fecha = document.getElementById('nlFecha').value; const cod = document.getElementById('nlCod').value.trim(); const nombre = document.getElementById('nlNombre').value.trim(); const zonal = document.getElementById('nlZonal').value.trim();
+        const correo = document.getElementById('nlCorreo').value.trim(); const telefono = document.getElementById('nlTelefono').value.trim();
         if(!mes || !cod || !nombre) { alert("Campos obligatorios faltantes."); return; }
         mes = obtenerMesInteligente(mes); 
         if(datosGlobales.find(r => r.MES === mes && r['CÓDIGO TIENDA'] === cod)) { alert("Ya existe."); return; }
 
         let fechaStr = fecha ? fecha.split('-').reverse().join('-') : '';
-        datosGlobales.push({ 'MES': mes, 'FECHA INICIO': fechaStr, 'CÓDIGO TIENDA': cod, 'TIENDA': nombre, 'JEFE ZONAL': zonal });
+        datosGlobales.push({ 'MES': mes, 'FECHA INICIO': fechaStr, 'CÓDIGO TIENDA': cod, 'TIENDA': nombre, 'JEFE ZONAL': zonal, 'CORREO ZONAL': correo, 'TELÉFONO ZONAL': telefono });
         try {
             await setDoc(doc(db, "sistema", "datosGlobales"), { excelJson: JSON.stringify(datosGlobales) });
             alert("Local agregado.");
             document.getElementById('nlCod').value = ''; document.getElementById('nlNombre').value = '';
+            document.getElementById('nlCorreo').value = ''; document.getElementById('nlTelefono').value = '';
             actualizarSelectorMeses(datosGlobales); window.renderizarTablaLocales();
             if(document.getElementById('monthSelect').value === mes || document.getElementById('monthSelect').value === '') { document.getElementById('monthSelect').value = mes; procesarDatos(); }
         } catch (error) { alert("Error al guardar."); datosGlobales.pop(); }
@@ -1839,14 +1849,21 @@ cotPendientesHTML += `<div style="margin-bottom:4px; font-weight:600; display:fl
         let mapLocales = {};
         datos.forEach(row => {
             let cod = row['CÓDIGO TIENDA']; if(!cod) return;
-            if(!mapLocales[cod]) mapLocales[cod] = { codTienda: cod, nombreTienda: row['TIENDA'] || '', jefeZonal: row['JEFE ZONAL'] || '', meses: new Set() };
+            if(!mapLocales[cod]) mapLocales[cod] = { codTienda: cod, nombreTienda: row['TIENDA'] || '', jefeZonal: row['JEFE ZONAL'] || '', correoZonal: row['CORREO ZONAL'] || '', telefonoZonal: row['TELÉFONO ZONAL'] || '', meses: new Set() };
             if(row.MES) mapLocales[cod].meses.add(row.MES);
         });
 
         Object.values(mapLocales).forEach((row) => {
             const tr = document.createElement('tr');
             let mesesHtml = Array.from(row.meses).map(m => `<span class="badge" style="background:#e0e7ff; color:#3730a3; border:1px solid #c7d2fe; margin:2px;">${m}</span>`).join('');
-            tr.innerHTML = `<td class="fw-bold" style="color:var(--primary); font-size: 0.85rem;">${row.codTienda}</td><td style="font-size: 0.85rem;">${row.nombreTienda}</td><td style="font-size: 0.85rem;">${row.jefeZonal}</td><td><div style="display:flex; flex-wrap:wrap; gap:4px;">${mesesHtml}</div></td><td class="centrado"><div style="display:flex; gap:4px; justify-content:center;"><button class="btn-ficha" style="color:var(--secondary); padding:4px 8px; font-size:0.75rem;" onclick="window.abrirModalEditarLocal('${row.codTienda}')">✏️ Editar</button><button class="btn-equipos" style="padding:4px 8px; font-size:0.75rem;" onclick="window.abrirEquipos('${row.codTienda}', document.getElementById('monthSelect').value || '')">🔧 Equipos</button><button class="btn-ficha" style="color:#10b981; background-color: #d1fae5; border: 1px solid #10b981; padding:4px 8px; font-size:0.75rem;" onclick="window.generarInformePDF('${row.codTienda}', '${row.nombreTienda}', '${row.jefeZonal}')">📄 PDF</button></div></td>`;
+            
+            // Aquí consolidamos los 3 datos en la columna del Responsable Zonal
+            let contactoHtml = `<div style="font-weight:600;">${row.jefeZonal || 'Sin Asignar'}</div>`;
+            if (row.correoZonal) contactoHtml += `<div style="font-size: 0.75rem; color: #64748b; margin-top:2px;">📧 ${row.correoZonal}</div>`;
+            if (row.telefonoZonal) contactoHtml += `<div style="font-size: 0.75rem; color: #64748b;">📱 ${row.telefonoZonal}</div>`;
+
+            tr.innerHTML = `<td class="fw-bold" style="color:var(--primary); font-size: 0.85rem;">${row.codTienda}</td><td style="font-size: 0.85rem;">${row.nombreTienda}</td><td style="font-size: 0.85rem;">${contactoHtml}</td><td><div style="display:flex; flex-wrap:wrap; gap:4px;">${mesesHtml}</div></td><td class="centrado"><div style="display:flex; gap:4px; justify-content:center;"><button class="btn-ficha" style="color:var(--secondary); padding:4px 8px; font-size:0.75rem;" onclick="window.abrirModalEditarLocal('${row.codTienda}')">✏️ Editar</button><button class="btn-equipos" style="padding:4px 8px; font-size:0.75rem;" onclick="window.abrirEquipos('${row.codTienda}', document.getElementById('monthSelect').value || '')">🔧 Equipos</button><button class="btn-ficha" style="color:#0284c7; background-color: #e0f2fe; border: 1px solid #0ea5e9; padding:4px 8px; font-size:0.75rem;" onclick="window.enviarCorreoLocal('${row.codTienda}', '${row.nombreTienda}', '${row.jefeZonal}', '${row.correoZonal}')">📧 Correo</button><button class="btn-ficha" style="color:#10b981; background-color: #d1fae5; border: 1px solid #10b981; padding:4px 8px; font-size:0.75rem;" onclick="window.generarInformePDF('${row.codTienda}', '${row.nombreTienda}', '${row.jefeZonal}')">📄 PDF</button></div></td>`;
+            
             tbody.appendChild(tr);
         });
     };
@@ -1855,8 +1872,19 @@ cotPendientesHTML += `<div style="margin-bottom:4px; font-weight:600; display:fl
     window.abrirModalEditarLocal = function(cod) {
         window.localEditContext.cod = cod; 
         const records = datosGlobales.filter(r => r['CÓDIGO TIENDA'] === cod);
+        
         if(records.length > 0) {
-            document.getElementById('elCod').value = cod; document.getElementById('elNombre').value = records[0]['TIENDA'] || ''; document.getElementById('elZonal').value = records[0]['JEFE ZONAL'] || '';
+            document.getElementById('elCod').value = cod; 
+            
+            // 1. Invertimos el orden para analizar los meses más recientes (Ej: Agosto) primero
+            const registrosNuevos = [...records].reverse();
+            
+            // 2. Busca el primer dato válido que encuentre, priorizando los nuevos
+            document.getElementById('elNombre').value = registrosNuevos.map(r => r['TIENDA']).find(v => v && String(v).trim() !== '') || ''; 
+            document.getElementById('elZonal').value = registrosNuevos.map(r => r['JEFE ZONAL']).find(v => v && String(v).trim() !== '') || '';
+            document.getElementById('elCorreo').value = registrosNuevos.map(r => r['CORREO ZONAL']).find(v => v && String(v).trim() !== '') || '';
+            document.getElementById('elTelefono').value = registrosNuevos.map(r => r['TELÉFONO ZONAL']).find(v => v && String(v).trim() !== '') || '';
+            
             window.localEditContext.meses = records.map(r => {
                 let fechaInput = '';
                 if(r['FECHA INICIO'] && r['FECHA INICIO'].includes('-')) {
@@ -1866,7 +1894,8 @@ cotPendientesHTML += `<div style="margin-bottom:4px; font-weight:600; display:fl
                 }
                 return { mes: r.MES, fechaInicio: fechaInput };
             });
-            window.renderizarMesesEditLocal(); document.getElementById('modalEditLocal').style.display = 'flex';
+            window.renderizarMesesEditLocal(); 
+            document.getElementById('modalEditLocal').style.display = 'flex';
         }
     };
 
@@ -1892,7 +1921,11 @@ cotPendientesHTML += `<div style="margin-bottom:4px; font-weight:600; display:fl
 
     window.guardarModalEditarLocal = async function() {
         const cod = window.localEditContext.cod; if(!cod) return;
-        const nombre = document.getElementById('elNombre').value.trim(); const zonal = document.getElementById('elZonal').value.trim();
+        const nombre = document.getElementById('elNombre').value.trim(); 
+        const zonal = document.getElementById('elZonal').value.trim();
+        const correo = document.getElementById('elCorreo').value.trim(); 
+        const telefono = document.getElementById('elTelefono').value.trim();
+        
         if(!nombre) { alert("El Nombre es obligatorio."); return; }
 
         const btn = document.getElementById('btnGuardarEditLocal'); btn.innerText = "Guardando..."; btn.disabled = true;
@@ -1900,7 +1933,7 @@ cotPendientesHTML += `<div style="margin-bottom:4px; font-weight:600; display:fl
 
         window.localEditContext.meses.forEach(m => {
             let fechaStr = m.fechaInicio ? m.fechaInicio.split('-').reverse().join('-') : '';
-            datosGlobales.push({ 'MES': m.mes, 'FECHA INICIO': fechaStr, 'CÓDIGO TIENDA': cod, 'TIENDA': nombre, 'JEFE ZONAL': zonal });
+            datosGlobales.push({ 'MES': m.mes, 'FECHA INICIO': fechaStr, 'CÓDIGO TIENDA': cod, 'TIENDA': nombre, 'JEFE ZONAL': zonal, 'CORREO ZONAL': correo, 'TELÉFONO ZONAL': telefono });
         });
 
         try {
@@ -1988,6 +2021,143 @@ cotPendientesHTML += `<div style="margin-bottom:4px; font-weight:600; display:fl
             }
             pdf.save(`Informe_Tecnico_${codTienda}_${nombreTienda.replace(/\s+/g, '_')}.pdf`);
         } catch (error) { alert("Hubo un error al compilar el informe."); }
+    };
+// GENERACIÓN DE CORREO AUTOMÁTICO VÍA OUTLOOK + CLIPBOARD API (REPORTE EN CAJAS PARA OUTLOOK)
+    window.enviarCorreoLocal = async function(codTienda, nombreTienda, jefeZonal, correoZonal = '') {
+        try {
+            const docRef = doc(db, "equipos_locales", codTienda);
+            const docSnap = await getDoc(docRef);
+
+            // 1. CONSTRUIR EL HTML PROFESIONAL
+            let html = `<div style="font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: #334155; max-width: 850px; line-height: 1.6;">`;
+            html += `<p style="margin-bottom: 20px;">Estimados,</p>`;
+            html += `<p style="margin-bottom: 40px;">A continuación, se detalla el reporte de mantenimiento y cotizaciones del siguiente local:</p>`;
+            
+            // Encabezado del Local SIN Responsable Zonal
+            html += `<div style="border-left: 5px solid #3b82f6; padding: 20px 25px; background-color: #f8fafc; border-radius: 6px;">`;
+            html += `<h2 style="margin: 0; color: #0f172a; font-size: 22px;">🏬 Local: ${codTienda} - ${nombreTienda}</h2>`;
+            html += `</div>`;
+
+            // SALTO DE 2 ESPACIOS ENTRE EL LOCAL Y EL PRIMER EQUIPO
+            html += `<br><br>`;
+
+            if (docSnap.exists() && docSnap.data().Equipos && docSnap.data().Equipos.length > 0) {
+                let equipos = docSnap.data().Equipos;
+                
+                equipos.forEach((eq, index) => {
+                    let colorEstado = eq.estado === 'Fuera de Servicio' ? '#ef4444' : (eq.estado === 'Con observaciones' ? '#d97706' : '#10b981');
+                    
+                    // >>> CAMBIO CLAVE: Usamos <table> para obligar a Outlook a dibujar el CUADRO del equipo <<<
+                    html += `<table width="100%" cellpadding="25" cellspacing="0" style="border: 2px solid #cbd5e1; background-color: #ffffff; border-collapse: collapse;">`;
+                    html += `<tr><td>`;
+                    
+                    html += `<h3 style="margin: 0 0 25px 0; color: #0f172a; font-size: 18px; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px;">🔧 Equipo: ${eq.nombre || 'S/N'}</h3>`;
+                    
+                    // Tabla de información del equipo
+                    html += `<table style="width: 100%; margin-bottom: 35px; font-size: 14px; text-align: left; border-collapse: collapse;">`;
+                    html += `<tr><td style="width: 120px; font-weight: bold; color: #64748b; padding-bottom: 15px;">N° Serie:</td><td style="padding-bottom: 15px;">${eq.serie || 'N/A'}</td></tr>`;
+                    html += `<tr><td style="font-weight: bold; color: #64748b; padding-bottom: 15px;">Estado:</td><td style="font-weight: bold; color: ${colorEstado}; padding-bottom: 15px; font-size: 15px;">${eq.estado || 'Operativo'}</td></tr>`;
+                    html += `<tr><td style="font-weight: bold; color: #64748b; padding-bottom: 15px;">Notas:</td><td style="padding-bottom: 15px;">${eq.observaciones || 'Sin observaciones'}</td></tr>`;
+                    html += `</table>`;
+
+                    let cotizacionesHTML = '';
+                    if (eq.listaCotizaciones) {
+                        eq.listaCotizaciones.forEach(cot => {
+                            if (cot.facturado) return; 
+                            
+                            if (cot.numero || cot.detalle || cot.monto) {
+                                let numStr = cot.numero || 'S/N';
+                                let montoStr = (cot.monto && cot.monto !== '-') ? cot.monto : '-';
+                                let estadoCot = "Pendiente OC";
+                                if (cot.realizado) estadoCot = "Ejecutado"; 
+                                else if (cot.tieneOC) estadoCot = "Con OC";
+
+                                let linkCotizacion = `N° ${numStr}`;
+                                if (cot.archivoUrl) {
+                                    linkCotizacion = `<a href="${cot.archivoUrl}" target="_blank" style="color: #2563eb; font-weight: bold; text-decoration: none; border-bottom: 1px solid #2563eb; padding-bottom: 2px;">📄 N° ${numStr}</a>`;
+                                }
+
+                                cotizacionesHTML += `
+                                <tr>
+                                    <td style="border: 1px solid #e2e8f0; padding: 14px 16px;">${linkCotizacion}</td>
+                                    <td style="border: 1px solid #e2e8f0; padding: 14px 16px; font-weight: bold; color: #0f172a;">${montoStr}</td>
+                                    <td style="border: 1px solid #e2e8f0; padding: 14px 16px; color: #475569;">${estadoCot}</td>
+                                    <td style="border: 1px solid #e2e8f0; padding: 14px 16px; color: #475569;">${cot.detalle || 'Sin repuestos / detalle'}</td>
+                                </tr>`;
+                            }
+                        });
+                    }
+
+                    if (cotizacionesHTML !== '') {
+                        html += `<h4 style="margin: 0 0 15px 0; color: #334155; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Detalle de Cotizaciones</h4>`;
+                        html += `<table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">`;
+                        html += `<tr style="background-color: #f8fafc; color: #475569;">
+                                    <th style="border: 1px solid #e2e8f0; padding: 14px 16px; width: 110px;">Cotización</th>
+                                    <th style="border: 1px solid #e2e8f0; padding: 14px 16px; width: 100px;">Monto</th>
+                                    <th style="border: 1px solid #e2e8f0; padding: 14px 16px; width: 110px;">Estado</th>
+                                    <th style="border: 1px solid #e2e8f0; padding: 14px 16px;">Repuestos / Notas</th>
+                                 </tr>`;
+                        html += cotizacionesHTML;
+                        html += `</table>`;
+                    } else {
+                        html += `<div style="background-color: #f8fafc; padding: 15px 20px; border-left: 4px solid #cbd5e1; font-size: 14px; color: #64748b; font-style: italic; border-radius: 4px;">Sin cotizaciones pendientes o en ejecución.</div>`;
+                    }
+                    
+                    // Cerramos la tabla que envuelve al equipo
+                    html += `</td></tr></table>`;
+
+                    // SALTO DE 2 ESPACIOS ENTRE UN EQUIPO Y EL SIGUIENTE
+                    if (index < equipos.length - 1) {
+                        html += `<br><br>`;
+                    }
+                });
+            } else {
+                html += `<div style="padding: 20px; background-color: #fef2f2; border-left: 4px solid #ef4444; color: #991b1b; font-weight: bold; margin-bottom: 40px;">No hay información de equipos guardada para este local en la nube.</div>`;
+            }
+
+            // SALTO DE 2 ESPACIOS ANTES DE LA DESPEDIDA
+            html += `<br><br>`;
+            html += `<p style="margin-top: 20px; margin-bottom: 10px;">Quedo atento a cualquier consulta.</p><p style="margin: 0;">Saludos cordiales.</p>`;
+            html += `</div>`; 
+
+            // 2. COPIAR EL HTML AL PORTAPAPELES
+            const blobHtml = new Blob([html], { type: "text/html" });
+            const blobText = new Blob(["Pega el contenido aquí (Ctrl+V)"], { type: "text/plain" });
+            const data = [new ClipboardItem({ "text/html": blobHtml, "text/plain": blobText })];
+            await navigator.clipboard.write(data);
+
+            // --- LÓGICA INTELIGENTE PARA ENCONTRAR EL CORREO ---
+            let correoDestino = '';
+            
+            // A) Si el botón mandó el correo (Ej: desde la pestaña Locales), lo usamos.
+            if (correoZonal && correoZonal.trim() !== '') {
+                correoDestino = correoZonal.trim();
+            } else {
+                // B) Si el botón no lo mandó (Ej: desde el Panel Principal), buscamos el dato más nuevo
+                const records = datosGlobales.filter(r => r['CÓDIGO TIENDA'] === codTienda);
+                const registrosNuevos = [...records].reverse();
+                const correoEncontrado = registrosNuevos.map(r => r['CORREO ZONAL']).find(v => v && String(v).trim() !== '');
+                
+                if (correoEncontrado) {
+                    correoDestino = correoEncontrado.trim();
+                }
+            }
+
+            // Correo de copia fijo
+            const correoEjecutiva = 'kcarrasco@maquipan.cl';
+
+            // 3. AVISAR AL USUARIO Y ABRIR OUTLOOK
+            alert("✅ ¡Reporte Profesional generado y copiado!\n\nSe abrirá Outlook. Solo debes presionar 'Pegar' (Ctrl + V) en el cuerpo del correo.");
+            
+            const asunto = encodeURIComponent(`Reporte Técnico y Cotizaciones - Local ${codTienda} ${nombreTienda}`);
+            const body = encodeURIComponent(`Presiona Pegar (Ctrl+V o Clic derecho -> Pegar) para insertar el reporte interactivo aquí...`);
+            
+            window.location.href = `mailto:${correoDestino}?cc=${correoEjecutiva}&subject=${asunto}&body=${body}`;
+
+        } catch (error) {
+            console.error("Error al generar correo:", error);
+            alert("No se pudo copiar el formato. Asegúrate de hacer clic en el botón y permitir el acceso al portapapeles en tu navegador.");
+        }
     };
 </script>
 
