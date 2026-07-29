@@ -454,14 +454,19 @@
     <!-- VISTA 4: GESTIÓN DE LOCALES -->
     <div id="vistaLocales" style="display: none;">
         <!-- ... [Contenido original Gestión Locales] ... -->
+        <!-- CONTROLES PARA AÑADIR LOCAL -->
         <div class="control-panel" style="margin-bottom: 20px; align-items: flex-end; padding-bottom: 20px;">
             <h3 style="width: 100%; margin: 0 0 15px 0; color: var(--primary); font-size: 1.1rem;">➕ Añadir Nuevo Local Manualmente</h3>
             
             <div class="control-group"><label>Mes Operativo</label><input type="text" id="nlMes" class="search-input" list="listaMesesExistentes" placeholder="Ej: ABRIL 2026" style="min-width: 150px; text-transform: uppercase;"><datalist id="listaMesesExistentes"></datalist></div>
-            <div class="control-group"><label>Fecha de Inicio (Opcional)</label><input type="date" id="nlFecha" class="search-input" style="min-width: 150px;"></div>
-            <div class="control-group"><label>Cód. Tienda</label><input type="text" id="nlCod" class="search-input" placeholder="Ej: T-001" style="min-width: 120px;"></div>
-            <div class="control-group"><label>Nombre Tienda</label><input type="text" id="nlNombre" class="search-input" placeholder="Ej: Local Centro" style="min-width: 200px;"></div>
-            <div class="control-group"><label>Resp. Zonal</label><input type="text" id="nlZonal" class="search-input" placeholder="Ej: Juan Perez" style="min-width: 150px;"></div>
+            <div class="control-group"><label>Fecha de Inicio</label><input type="date" id="nlFecha" class="search-input" style="min-width: 150px;"></div>
+            <div class="control-group"><label>Cód. Tienda</label><input type="text" id="nlCod" class="search-input" placeholder="Ej: T-001" style="min-width: 100px;"></div>
+            <div class="control-group"><label>Nombre Tienda</label><input type="text" id="nlNombre" class="search-input" placeholder="Ej: Local Centro" style="min-width: 180px;"></div>
+            
+            <!-- NUEVO CAMPO: DIRECCIÓN -->
+            <div class="control-group"><label>Dirección</label><input type="text" id="nlDireccion" class="search-input" placeholder="Av. Principal 123..." style="min-width: 200px;"></div>
+            
+            <div class="control-group"><label>Resp. Zonal</label><input type="text" id="nlZonal" class="search-input" placeholder="Ej: Juan Perez" style="min-width: 130px;"></div>
             <div class="control-group"><label>Correo Zonal</label><input type="email" id="nlCorreo" class="search-input" placeholder="correo@empresa.com" style="min-width: 150px;"></div>
             <div class="control-group"><label>Teléfono Zonal</label><input type="text" id="nlTelefono" class="search-input" placeholder="+569..." style="min-width: 120px;"></div>
             
@@ -489,9 +494,14 @@
         <!-- [Modal Edición Local Original] -->
         <div class="modal-header">Editar Datos del Local 🏪</div>
         <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0;">Actualiza el nombre, responsable y los <b>meses/fechas</b> programadas.</p>
+        <!-- MODAL EDICIÓN LOCAL GLOBAL -->
         <div class="equipo-field" style="margin-top: 5px;"><label>Cód. Tienda (Identificador)</label><input type="text" id="elCod" class="equipo-input" disabled style="background-color: #f1f5f9; cursor: not-allowed;"></div>
         <div class="equipo-field"><label>Nombre Tienda</label><input type="text" id="elNombre" class="equipo-input"></div>
-<div class="equipo-field"><label>Resp. Zonal</label><input type="text" id="elZonal" class="equipo-input"></div>
+        
+        <!-- NUEVO CAMPO: DIRECCIÓN EN EL MODAL -->
+        <div class="equipo-field"><label>Dirección del Local</label><input type="text" id="elDireccion" class="equipo-input" placeholder="Av. Principal 123..."></div>
+        
+        <div class="equipo-field"><label>Resp. Zonal</label><input type="text" id="elZonal" class="equipo-input"></div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 5px;">
             <div class="equipo-field"><label>Correo Zonal</label><input type="email" id="elCorreo" class="equipo-input" placeholder="correo@empresa.com"></div>
             <div class="equipo-field"><label>Teléfono Zonal</label><input type="text" id="elTelefono" class="equipo-input" placeholder="+569..."></div>
@@ -588,7 +598,16 @@
         <div class="modal-field"><label>N° REQ (Requerimiento del Servicio)</label><div style="display: flex; gap: 8px;"><textarea id="modReq" class="modal-textarea" rows="1" placeholder="Ej: R-001" style="flex: 1; margin: 0;"></textarea><button class="btn-action" style="background: var(--secondary); padding: 8px 12px; font-weight: 600; white-space: nowrap;" onclick="window.abrirFixeat('modReq')">🔗 Abrir en FIXEAT</button></div></div>
         <div class="modal-field"><label>N° Cotización(es) Generales del Servicio</label><textarea id="modCot" class="modal-textarea" rows="1" placeholder="Ej: 1234, 5678"></textarea></div>
         <div class="modal-field"><label>Observaciones Puntuales de la Visita</label><textarea id="modObs" class="modal-textarea" rows="3" placeholder="Agrega un dato puntual, notas de la visita, incidentes..."></textarea></div>
-        <div style="margin-top: 15px; border-top: 1px dashed var(--border); padding-top: 15px;"><label style="font-weight: 600; color: var(--text-main); font-size: 0.85rem; display: block; margin-bottom: 8px;">Links de Fichas de Servicio</label><div style="display: flex; gap: 8px; margin-bottom: 10px;"><input type="text" id="nuevoNombreLink" class="equipo-input" placeholder="Nombre (Ej: Ficha Cierre)" style="flex: 1;"><input type="url" id="nuevoUrlLink" class="equipo-input" placeholder="Pega el link de descarga aquí..." style="flex: 2;"><button class="btn-action" style="background: var(--success); padding: 8px 12px; font-size: 0.8rem; font-weight: 600;" onclick="window.agregarLinkFicha()">+ Agregar Link</button></div><div id="listaFichasLinks" style="display: flex; flex-direction: column; gap: 6px;"></div></div>
+        <div style="margin-top: 15px; border-top: 1px dashed var(--border); padding-top: 15px;"><label style="font-weight: 600; color: var(--text-main); font-size: 0.85rem; display: block; margin-bottom: 8px;">Links de Fichas de Servicio</label><div style="display: flex; gap: 8px; margin-bottom: 10px;"><input type="text" id="nuevoNombreLink" class="equipo-input" placeholder="Nombre (Ej: Ficha Cierre)" style="flex: 1;"><input type="url" id="nuevoUrlLink" class="equipo-input" placeholder="Pega el link de descarga aquí..." style="flex: 2;"><button class="btn-action" style="background: var(--success); padding: 8px 12px; font-size: 0.8rem; font-weight: 600;" onclick="window.agregarLinkFicha()">+ Agregar Link</button></div><div id="listaFichasLinks" style="display: flex; flex-direction: column; gap: 6px;"></div></div><!-- NUEVO BLOQUE: IMÁGENES ADJUNTAS -->
+        <div style="margin-top: 15px; border-top: 1px dashed var(--border); padding-top: 15px;">
+            <label style="font-weight: 600; color: var(--text-main); font-size: 0.85rem; display: block; margin-bottom: 8px;">📷 Imágenes Adjuntas</label>
+            <div style="display: flex; gap: 8px; margin-bottom: 10px; align-items: center;">
+                <input type="file" id="nuevaImagenFicha" accept="image/*" class="equipo-input" style="flex: 1;">
+                <button class="btn-action" style="background: var(--secondary); padding: 8px 12px; font-size: 0.8rem; font-weight: 600;" onclick="window.subirImagenFicha(event)">⬆️ Subir Imagen</button>
+            </div>
+            <div id="listaImagenesFicha" style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px;"></div>
+        </div>
+        <!-- FIN NUEVO BLOQUE -->
         <div class="modal-actions">
             <button class="btn-modal btn-cancel" onclick="cerrarFicha()">Cancelar</button>
             <button class="btn-modal btn-save" onclick="guardarFicha()">Guardar Cambios</button>
@@ -841,11 +860,11 @@
         });
     }
 
-    // (LÓGICA FICHA GLOBAL INTACTA...)
-    window.fichaContext = { codTienda: null, mes: null, linksFichas: [] };
+    // --- LÓGICA FICHA GLOBAL ACTUALIZADA ---
+    window.fichaContext = { codTienda: null, mes: null, linksFichas: [], imagenes: [] };
 
     window.abrirFicha = async function(codTienda, fechaOrigStr, tienda, zonal, mes) {
-        window.fichaContext = { codTienda, mes, linksFichas: [] };
+        window.fichaContext = { codTienda, mes, linksFichas: [], imagenes: [] }; // Agregado imagenes
         document.getElementById('modCodTiendaTitulo').innerText = codTienda;
         document.getElementById('modTienda').innerText = tienda;
         document.getElementById('modZonal').innerText = zonal;
@@ -912,14 +931,20 @@
             
             document.getElementById('nuevoNombreLink').value = '';
             document.getElementById('nuevoUrlLink').value = '';
+            
+            // Cargar Links e Imágenes
             window.fichaContext.linksFichas = datosNube.LinksFichas || [];
+            window.fichaContext.imagenes = datosNube.Imagenes || [];
+            
             window.renderizarLinksFichas();
+            window.renderizarImagenesFicha(); // Nueva función
 
             document.getElementById('fichaModal').style.display = 'flex';
         } catch(error) { console.error(error); }
     };
 
     window.cerrarFicha = function() { document.getElementById('fichaModal').style.display = 'none'; };
+    
     window.guardarFicha = async function() {
         const { codTienda, mes } = window.fichaContext;
         const nFecha = document.getElementById('modFechaInput').value; 
@@ -933,7 +958,9 @@
         try {
             await setDoc(doc(db, `estados_${mes}`, codTienda), {
                 FechaModificada: nFecha, NumReq: nReq, NumCot: nCot, Observaciones: nObs,
-                Realizado: bRealizado, CotEnviadas: bCotEnv, Cierre: bCierre, LinksFichas: window.fichaContext.linksFichas
+                Realizado: bRealizado, CotEnviadas: bCotEnv, Cierre: bCierre, 
+                LinksFichas: window.fichaContext.linksFichas,
+                Imagenes: window.fichaContext.imagenes // Guardar el array de imágenes
             }, { merge: true });
             cerrarFicha(); procesarDatos(); 
         } catch(error) { alert("Hubo un error de conexión."); }
@@ -1503,7 +1530,6 @@ cotPendientesHTML += `<div style="margin-bottom:4px; font-weight:600; display:fl
                     `;
                 }
 
-                // *** VARIABLES NUEVAS PARA EL BOTÓN INTELIGENTE (PUNTO 4) ***
                 let safeUrl = cot.archivoUrl ? cot.archivoUrl.replace(/'/g, "\\'") : '';
                 let safeNum = cot.numero ? cot.numero.replace(/'/g, "\\'") : '';
 
@@ -1527,10 +1553,7 @@ cotPendientesHTML += `<div style="margin-bottom:4px; font-weight:600; display:fl
                             <div style="display: grid; grid-template-columns: 1fr 100px 130px; gap: 8px; align-items: center; margin-bottom: 8px;">
                                 <div style="display: flex; gap: 4px;">
                                     <input type="text" class="equipo-input" value="${cot.numero || ''}" placeholder="N° Cotización" onchange="window.actualizarCotizacion(${cIndex}, 'numero', this.value); window.renderizarEquipoDetalle();" style="flex: 1;">
-                                    
-                                    <!-- *** AQUÍ ESTÁ EL BOTÓN 🔗 ACTUALIZADO CON LA FUNCIÓN INTELIGENTE *** -->
                                     <button class="btn-ficha-blue" style="padding: 4px 8px;" onclick="window.abrirEnlaceCotizacion('${safeNum}', '${safeUrl}')">🔗</button>
-                                
                                 </div>
                                 <input type="text" class="equipo-input" value="${cot.monto || ''}" placeholder="Monto ($)" onchange="window.actualizarCotizacion(${cIndex}, 'monto', this.value); window.renderizarEquipoDetalle();">
                                 <input type="date" class="equipo-input" value="${cot.fecha || ''}" onchange="window.actualizarCotizacion(${cIndex}, 'fecha', this.value)" title="Fecha de emisión">
@@ -1565,7 +1588,16 @@ cotPendientesHTML += `<div style="margin-bottom:4px; font-weight:600; display:fl
         }
         if (cotPendientes === 0) cotizacionesHTML = '<div style="font-size: 0.75rem; color: #94a3b8; font-style: italic;">No hay cotizaciones pendientes por ejecutar.</div>';
 
+        // AQUI ESTÁ EL NUEVO BANNER CON EL BOTÓN DEL CORREO
         container.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #f8fafc; padding: 12px 15px; border-radius: 8px; border: 1px dashed #cbd5e1;">
+                <div>
+                    <strong style="color: var(--primary); font-size: 0.85rem; display: block;">📨 Enviar Cotización al Cliente</strong>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">Genera un correo limpio con la información exclusiva de esta máquina.</span>
+                </div>
+                <button class="btn-ficha" style="color:#0284c7; background-color: #e0f2fe; border: 1px solid #0ea5e9; padding:8px 14px; font-size:0.8rem; font-weight:600;" onclick="window.enviarCorreoEquipo(${index})">📧 Enviar Correo del Equipo</button>
+            </div>
+
             <div class="equipo-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));"><div class="equipo-field"><label>Nombre del Equipo</label><input type="text" class="equipo-input" value="${equipo.nombre || ''}" onchange="window.actualizarCampoEquipoActivo('nombre', this.value)"></div><div class="equipo-field"><label>N° de Serie / Modelo</label><input type="text" class="equipo-input" value="${equipo.serie || ''}" onchange="window.actualizarCampoEquipoActivo('serie', this.value)"></div><div class="equipo-field"><label>Estado del Equipo</label><select class="equipo-input" onchange="window.actualizarCampoEquipoActivo('estado', this.value)"><option value="Operativo" ${equipo.estado === 'Operativo' ? 'selected' : ''}>🟢 Operativo</option><option value="Con observaciones" ${equipo.estado === 'Con observaciones' ? 'selected' : ''}>🟡 Con observaciones</option><option value="Fuera de Servicio" ${equipo.estado === 'Fuera de Servicio' ? 'selected' : ''}>🔴 Fuera de Servicio</option></select></div></div>
             <div class="equipo-field" style="margin-top: 12px;"><label>Observaciones Generales</label><textarea class="equipo-textarea" rows="2" onchange="window.actualizarCampoEquipoActivo('observaciones', this.value)">${equipo.observaciones || ''}</textarea></div>
             <div class="cot-section"><div class="historial-title">💰 Seguimiento de Cotizaciones</div><div class="historial-list">${cotizacionesHTML}</div><button class="btn-add-hist" style="background: #10b981; margin-top:5px;" onclick="window.agregarCotizacion()">+ Añadir Cotización</button></div>
@@ -1720,7 +1752,163 @@ cotPendientesHTML += `<div style="margin-bottom:4px; font-weight:600; display:fl
     };
     window.copiarLinkPortapapeles = function(url) { navigator.clipboard.writeText(url).then(() => alert("¡Link copiado!")).catch(err => alert("Copia manual requerida.")); };
     window.eliminarLinkFicha = function(index) { if (confirm("¿Deseas quitar este link?")) { window.fichaContext.linksFichas.splice(index, 1); window.renderizarLinksFichas(); } };
+// --- NUEVA LÓGICA: IMÁGENES EN FICHA DE SERVICIO ---
+    
+    window.renderizarImagenesFicha = function() {
+        const contenedor = document.getElementById('listaImagenesFicha');
+        contenedor.innerHTML = '';
+        if (window.fichaContext.imagenes.length === 0) {
+            contenedor.innerHTML = '<span style="font-size: 0.8rem; color: #94a3b8; font-style: italic;">No hay imágenes adjuntas en esta ficha.</span>';
+            return;
+        }
+        
+        window.fichaContext.imagenes.forEach((img, index) => {
+            contenedor.innerHTML += `
+                <div style="position: relative; border: 1px solid #e2e8f0; border-radius: 8px; padding: 4px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                    <a href="${img.url}" target="_blank" title="Hacer clic para ver la imagen en tamaño completo">
+                        <img src="${img.url}" alt="Imagen adjunta" style="width: 80px; height: 80px; object-fit: cover; border-radius: 6px; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    </a>
+                    <button onclick="window.eliminarImagenFicha(${index})" style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 10px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2);" title="Eliminar imagen">✕</button>
+                </div>
+            `;
+        });
+    };
 
+    // --- FUNCIÓN AUXILIAR PARA COMPRIMIR Y CONVERTIR A WEBP ---
+    const comprimirImagenAWebP = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Límite de resolución para no subir fotos gigantes (Full HD máx)
+                    const MAX_SIZE = 1920; 
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > MAX_SIZE || height > MAX_SIZE) {
+                        if (width > height) {
+                            height *= MAX_SIZE / width;
+                            width = MAX_SIZE;
+                        } else {
+                            width *= MAX_SIZE / height;
+                            height = MAX_SIZE;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    
+                    // Dibujar la imagen redimensionada en el canvas
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Exportar como WebP con 80% de calidad (0.8)
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            // Extraer el nombre original pero cambiarle la extensión a .webp
+                            const nombreSinExtension = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+                            const nuevoNombre = `${nombreSinExtension}.webp`;
+                            
+                            const newFile = new File([blob], nuevoNombre, { type: 'image/webp' });
+                            resolve(newFile);
+                        } else {
+                            reject(new Error("No se pudo comprimir la imagen"));
+                        }
+                    }, 'image/webp', 0.8);
+                };
+                img.onerror = (error) => reject(error);
+            };
+            reader.onerror = (error) => reject(error);
+        });
+    };
+
+    // --- FUNCIÓN ACTUALIZADA DE SUBIDA ---
+    window.subirImagenFicha = async function(event) {
+        const input = document.getElementById('nuevaImagenFicha');
+        let file = input.files[0];
+        
+        if (!file) {
+            alert("Por favor, selecciona una imagen primero.");
+            return;
+        }
+
+        const btn = event.currentTarget;
+        const textoOriginal = btn.innerText;
+        btn.innerText = "⏳ Optimizando..."; 
+        btn.disabled = true;
+
+        try {
+            // 1. Convertir la imagen a formato WebP ligero
+            file = await comprimirImagenAWebP(file);
+
+            btn.innerText = "⏳ Subiendo a la nube..."; 
+            
+            const { codTienda, mes } = window.fichaContext;
+            // La ruta ahora guardará el archivo con extensión .webp automáticamente
+            const pathStorage = `fichas/${mes}/${codTienda}/${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+            const imageRef = storageRef(storage, pathStorage);
+            
+            // 2. Subir a Storage
+            await uploadBytes(imageRef, file);
+            const url = await getDownloadURL(imageRef);
+
+            // 3. Agregar al arreglo local
+            window.fichaContext.imagenes.push({
+                nombre: file.name, // Ya tendrá el nombre con .webp
+                url: url,
+                storagePath: pathStorage
+            });
+
+            // 4. Guardar inmediatamente en Firestore
+            await setDoc(doc(db, `estados_${mes}`, codTienda), { 
+                Imagenes: window.fichaContext.imagenes 
+            }, { merge: true });
+
+            input.value = ''; 
+            window.renderizarImagenesFicha(); 
+            
+        } catch (error) {
+            console.error("Error al subir imagen:", error);
+            alert("No se pudo subir la imagen. Verifica tu conexión a internet.");
+        } finally {
+            btn.innerText = textoOriginal;
+            btn.disabled = false;
+        }
+    };
+
+    window.eliminarImagenFicha = async function(index) {
+        if (!confirm("¿Estás seguro que deseas eliminar esta imagen permanentemente?")) return;
+        
+        const img = window.fichaContext.imagenes[index];
+        const { codTienda, mes } = window.fichaContext;
+
+        try {
+            // Borrar de Firebase Storage si existe la ruta
+            if (img.storagePath) {
+                const imageRef = storageRef(storage, img.storagePath);
+                await deleteObject(imageRef);
+            }
+            
+            // Eliminar del arreglo local
+            window.fichaContext.imagenes.splice(index, 1);
+            
+            // Actualizar el documento en Firestore
+            await setDoc(doc(db, `estados_${mes}`, codTienda), { 
+                Imagenes: window.fichaContext.imagenes 
+            }, { merge: true });
+            
+            window.renderizarImagenesFicha();
+            
+        } catch (error) {
+            console.error("Error al eliminar imagen:", error);
+            alert("Hubo un error al intentar eliminar la imagen de la nube.");
+        }
+    };
 // --- LÓGICA INTELIGENTE DEL BOTÓN 🔗 ---
     window.abrirEnlaceCotizacion = function(cotValue, urlValue) {
         if (urlValue && urlValue !== 'null' && urlValue.trim() !== '') {
@@ -1818,38 +2006,88 @@ cotPendientesHTML += `<div style="margin-bottom:4px; font-weight:600; display:fl
         return match ? match : mesBuscado;
     }
 
+    // --- LÓGICA DE LOCALES MANUALES ACTUALIZADA CON DIRECCIÓN ---
+    
     window.agregarLocalManual = async function() {
-        let mes = document.getElementById('nlMes').value.trim(); const fecha = document.getElementById('nlFecha').value; const cod = document.getElementById('nlCod').value.trim(); const nombre = document.getElementById('nlNombre').value.trim(); const zonal = document.getElementById('nlZonal').value.trim();
-        const correo = document.getElementById('nlCorreo').value.trim(); const telefono = document.getElementById('nlTelefono').value.trim();
-        if(!mes || !cod || !nombre) { alert("Campos obligatorios faltantes."); return; }
+        let mes = document.getElementById('nlMes').value.trim(); 
+        const fecha = document.getElementById('nlFecha').value; 
+        const cod = document.getElementById('nlCod').value.trim(); 
+        const nombre = document.getElementById('nlNombre').value.trim(); 
+        const direccion = document.getElementById('nlDireccion').value.trim(); // <-- CAPTURAR DIRECCIÓN
+        const zonal = document.getElementById('nlZonal').value.trim();
+        const correo = document.getElementById('nlCorreo').value.trim(); 
+        const telefono = document.getElementById('nlTelefono').value.trim();
+        
+        if(!mes || !cod || !nombre) { alert("Los campos Mes, Código y Nombre son obligatorios."); return; }
+        
         mes = obtenerMesInteligente(mes); 
-        if(datosGlobales.find(r => r.MES === mes && r['CÓDIGO TIENDA'] === cod)) { alert("Ya existe."); return; }
+        if(datosGlobales.find(r => r.MES === mes && r['CÓDIGO TIENDA'] === cod)) { alert("Este local ya está programado para ese mes."); return; }
 
         let fechaStr = fecha ? fecha.split('-').reverse().join('-') : '';
-        datosGlobales.push({ 'MES': mes, 'FECHA INICIO': fechaStr, 'CÓDIGO TIENDA': cod, 'TIENDA': nombre, 'JEFE ZONAL': zonal, 'CORREO ZONAL': correo, 'TELÉFONO ZONAL': telefono });
+        
+        // Agregar 'DIRECCIÓN' a los datos
+        datosGlobales.push({ 'MES': mes, 'FECHA INICIO': fechaStr, 'CÓDIGO TIENDA': cod, 'TIENDA': nombre, 'DIRECCIÓN': direccion, 'JEFE ZONAL': zonal, 'CORREO ZONAL': correo, 'TELÉFONO ZONAL': telefono });
+        
         try {
             await setDoc(doc(db, "sistema", "datosGlobales"), { excelJson: JSON.stringify(datosGlobales) });
-            alert("Local agregado.");
-            document.getElementById('nlCod').value = ''; document.getElementById('nlNombre').value = '';
-            document.getElementById('nlCorreo').value = ''; document.getElementById('nlTelefono').value = '';
-            actualizarSelectorMeses(datosGlobales); window.renderizarTablaLocales();
-            if(document.getElementById('monthSelect').value === mes || document.getElementById('monthSelect').value === '') { document.getElementById('monthSelect').value = mes; procesarDatos(); }
-        } catch (error) { alert("Error al guardar."); datosGlobales.pop(); }
+            alert("Local agregado correctamente.");
+            
+            // Limpiar inputs
+            document.getElementById('nlCod').value = ''; 
+            document.getElementById('nlNombre').value = '';
+            document.getElementById('nlDireccion').value = '';
+            document.getElementById('nlCorreo').value = ''; 
+            document.getElementById('nlTelefono').value = '';
+            
+            actualizarSelectorMeses(datosGlobales); 
+            window.renderizarTablaLocales();
+            if(document.getElementById('monthSelect').value === mes || document.getElementById('monthSelect').value === '') { 
+                document.getElementById('monthSelect').value = mes; 
+                procesarDatos(); 
+            }
+        } catch (error) { 
+            alert("Error al guardar en la nube."); 
+            datosGlobales.pop(); 
+        }
     };
 
     window.renderizarTablaLocales = function() {
-        const tbody = document.getElementById('tbodyLocalesMain'); const term = document.getElementById('searchLocales').value.toLowerCase();
+        const tbody = document.getElementById('tbodyLocalesMain'); 
+        const term = document.getElementById('searchLocales').value.toLowerCase();
+        
         tbody.innerHTML = '';
         if(datosGlobales.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No hay locales registrados.</td></tr>'; return; }
 
         let datos = [...datosGlobales].reverse();
-        if(term !== '') datos = datos.filter(r => (r.MES || '').toLowerCase().includes(term) || (r['CÓDIGO TIENDA'] || '').toLowerCase().includes(term) || (r['TIENDA'] || '').toLowerCase().includes(term) || (r['JEFE ZONAL'] || '').toLowerCase().includes(term));
-        if(datos.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Sin resultados.</td></tr>'; return; }
+        
+        // Actualizado para que el buscador también encuentre por dirección
+        if(term !== '') {
+            datos = datos.filter(r => 
+                (r.MES || '').toLowerCase().includes(term) || 
+                (r['CÓDIGO TIENDA'] || '').toLowerCase().includes(term) || 
+                (r['TIENDA'] || '').toLowerCase().includes(term) || 
+                (r['DIRECCIÓN'] || '').toLowerCase().includes(term) || 
+                (r['JEFE ZONAL'] || '').toLowerCase().includes(term)
+            );
+        }
+        
+        if(datos.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Sin resultados para esta búsqueda.</td></tr>'; return; }
 
         let mapLocales = {};
         datos.forEach(row => {
             let cod = row['CÓDIGO TIENDA']; if(!cod) return;
-            if(!mapLocales[cod]) mapLocales[cod] = { codTienda: cod, nombreTienda: row['TIENDA'] || '', jefeZonal: row['JEFE ZONAL'] || '', correoZonal: row['CORREO ZONAL'] || '', telefonoZonal: row['TELÉFONO ZONAL'] || '', meses: new Set() };
+            // Agregado parámetro 'direccion' al mapa
+            if(!mapLocales[cod]) {
+                mapLocales[cod] = { 
+                    codTienda: cod, 
+                    nombreTienda: row['TIENDA'] || '', 
+                    direccion: row['DIRECCIÓN'] || '', 
+                    jefeZonal: row['JEFE ZONAL'] || '', 
+                    correoZonal: row['CORREO ZONAL'] || '', 
+                    telefonoZonal: row['TELÉFONO ZONAL'] || '', 
+                    meses: new Set() 
+                };
+            }
             if(row.MES) mapLocales[cod].meses.add(row.MES);
         });
 
@@ -1857,30 +2095,47 @@ cotPendientesHTML += `<div style="margin-bottom:4px; font-weight:600; display:fl
             const tr = document.createElement('tr');
             let mesesHtml = Array.from(row.meses).map(m => `<span class="badge" style="background:#e0e7ff; color:#3730a3; border:1px solid #c7d2fe; margin:2px;">${m}</span>`).join('');
             
-            // Aquí consolidamos los 3 datos en la columna del Responsable Zonal
+            // Construcción visual del nombre y dirección
+            let tiendaHtml = `<div style="font-weight:500;">${row.nombreTienda}</div>`;
+            if (row.direccion) {
+                tiendaHtml += `<div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">📍 ${row.direccion}</div>`;
+            }
+
+            // Construcción visual del Zonal
             let contactoHtml = `<div style="font-weight:600;">${row.jefeZonal || 'Sin Asignar'}</div>`;
             if (row.correoZonal) contactoHtml += `<div style="font-size: 0.75rem; color: #64748b; margin-top:2px;">📧 ${row.correoZonal}</div>`;
             if (row.telefonoZonal) contactoHtml += `<div style="font-size: 0.75rem; color: #64748b;">📱 ${row.telefonoZonal}</div>`;
 
-            tr.innerHTML = `<td class="fw-bold" style="color:var(--primary); font-size: 0.85rem;">${row.codTienda}</td><td style="font-size: 0.85rem;">${row.nombreTienda}</td><td style="font-size: 0.85rem;">${contactoHtml}</td><td><div style="display:flex; flex-wrap:wrap; gap:4px;">${mesesHtml}</div></td><td class="centrado"><div style="display:flex; gap:4px; justify-content:center;"><button class="btn-ficha" style="color:var(--secondary); padding:4px 8px; font-size:0.75rem;" onclick="window.abrirModalEditarLocal('${row.codTienda}')">✏️ Editar</button><button class="btn-equipos" style="padding:4px 8px; font-size:0.75rem;" onclick="window.abrirEquipos('${row.codTienda}', document.getElementById('monthSelect').value || '')">🔧 Equipos</button><button class="btn-ficha" style="color:#0284c7; background-color: #e0f2fe; border: 1px solid #0ea5e9; padding:4px 8px; font-size:0.75rem;" onclick="window.enviarCorreoLocal('${row.codTienda}', '${row.nombreTienda}', '${row.jefeZonal}', '${row.correoZonal}')">📧 Correo</button><button class="btn-ficha" style="color:#10b981; background-color: #d1fae5; border: 1px solid #10b981; padding:4px 8px; font-size:0.75rem;" onclick="window.generarInformePDF('${row.codTienda}', '${row.nombreTienda}', '${row.jefeZonal}')">📄 PDF</button></div></td>`;
+            tr.innerHTML = `
+                <td class="fw-bold" style="color:var(--primary); font-size: 0.85rem;">${row.codTienda}</td>
+                <td style="font-size: 0.85rem;">${tiendaHtml}</td>
+                <td style="font-size: 0.85rem;">${contactoHtml}</td>
+                <td><div style="display:flex; flex-wrap:wrap; gap:4px;">${mesesHtml}</div></td>
+                <td class="centrado">
+                    <div style="display:flex; gap:4px; justify-content:center;">
+                        <button class="btn-ficha" style="color:var(--secondary); padding:4px 8px; font-size:0.75rem;" onclick="window.abrirModalEditarLocal('${row.codTienda}')">✏️ Editar</button>
+                        <button class="btn-equipos" style="padding:4px 8px; font-size:0.75rem;" onclick="window.abrirEquipos('${row.codTienda}', document.getElementById('monthSelect').value || '')">🔧 Equipos</button>
+                        <button class="btn-ficha" style="color:#0284c7; background-color: #e0f2fe; border: 1px solid #0ea5e9; padding:4px 8px; font-size:0.75rem;" onclick="window.enviarCorreoLocal('${row.codTienda}', '${row.nombreTienda.replace(/'/g, "\\'")}', '${row.jefeZonal.replace(/'/g, "\\'")}', '${row.correoZonal}')">📧 Correo</button>
+                        <button class="btn-ficha" style="color:#10b981; background-color: #d1fae5; border: 1px solid #10b981; padding:4px 8px; font-size:0.75rem;" onclick="window.generarInformePDF('${row.codTienda}', '${row.nombreTienda.replace(/'/g, "\\'")}', '${row.jefeZonal.replace(/'/g, "\\'")}')">📄 PDF</button>
+                    </div>
+                </td>`;
             
             tbody.appendChild(tr);
         });
     };
-
+// --- DECLARACIÓN QUE FALTABA ---
     window.localEditContext = { cod: null, meses: [] };
+
     window.abrirModalEditarLocal = function(cod) {
         window.localEditContext.cod = cod; 
         const records = datosGlobales.filter(r => r['CÓDIGO TIENDA'] === cod);
         
         if(records.length > 0) {
             document.getElementById('elCod').value = cod; 
-            
-            // 1. Invertimos el orden para analizar los meses más recientes (Ej: Agosto) primero
             const registrosNuevos = [...records].reverse();
             
-            // 2. Busca el primer dato válido que encuentre, priorizando los nuevos
             document.getElementById('elNombre').value = registrosNuevos.map(r => r['TIENDA']).find(v => v && String(v).trim() !== '') || ''; 
+            document.getElementById('elDireccion').value = registrosNuevos.map(r => r['DIRECCIÓN']).find(v => v && String(v).trim() !== '') || ''; 
             document.getElementById('elZonal').value = registrosNuevos.map(r => r['JEFE ZONAL']).find(v => v && String(v).trim() !== '') || '';
             document.getElementById('elCorreo').value = registrosNuevos.map(r => r['CORREO ZONAL']).find(v => v && String(v).trim() !== '') || '';
             document.getElementById('elTelefono').value = registrosNuevos.map(r => r['TELÉFONO ZONAL']).find(v => v && String(v).trim() !== '') || '';
@@ -1899,49 +2154,87 @@ cotPendientesHTML += `<div style="margin-bottom:4px; font-weight:600; display:fl
         }
     };
 
-    window.cerrarModalEditarLocal = function() { document.getElementById('modalEditLocal').style.display = 'none'; document.getElementById('elNuevoMes').value = ''; if(document.getElementById('elNuevaFecha')) document.getElementById('elNuevaFecha').value = ''; };
-    window.actualizarFechaMesLocal = function(index, nuevaFecha) { window.localEditContext.meses[index].fechaInicio = nuevaFecha; };
+    // --- FUNCIONES INTERNAS DEL MODAL QUE SE HABÍAN BORRADO ---
+    window.cerrarModalEditarLocal = function() { 
+        document.getElementById('modalEditLocal').style.display = 'none'; 
+        document.getElementById('elNuevoMes').value = ''; 
+        if(document.getElementById('elNuevaFecha')) document.getElementById('elNuevaFecha').value = ''; 
+    };
+
+    window.actualizarFechaMesLocal = function(index, nuevaFecha) { 
+        window.localEditContext.meses[index].fechaInicio = nuevaFecha; 
+    };
+
     window.renderizarMesesEditLocal = function() {
-        const container = document.getElementById('elListaMeses'); container.innerHTML = '';
-        if (window.localEditContext.meses.length === 0) { container.innerHTML = '<span style="font-size:0.8rem; color:#ef4444; font-weight:bold;">⚠️ Se borrará el local sin meses.</span>'; return; }
+        const container = document.getElementById('elListaMeses'); 
+        container.innerHTML = '';
+        if (window.localEditContext.meses.length === 0) { 
+            container.innerHTML = '<span style="font-size:0.8rem; color:#ef4444; font-weight:bold;">⚠️ Se borrará el local sin meses programados.</span>'; 
+            return; 
+        }
         window.localEditContext.meses.forEach((m, index) => {
             container.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; background:#ffffff; padding:8px 10px; border-radius:6px; border:1px solid #cbd5e1; gap: 10px;"><span style="font-size:0.85rem; font-weight:600; color:var(--primary); flex: 1;">${m.mes}</span><input type="date" class="equipo-input" style="padding: 4px 8px; width: 130px;" value="${m.fechaInicio}" onchange="window.actualizarFechaMesLocal(${index}, this.value)"><button class="btn-del-hist" onclick="window.eliminarMesEditLocal(${index})">🗑️ Quitar</button></div>`;
         });
     };
 
     window.agregarMesEditLocal = function() {
-        let nuevoMes = document.getElementById('elNuevoMes').value.trim(); let nuevaFecha = document.getElementById('elNuevaFecha').value; 
-        if (!nuevoMes) return; nuevoMes = obtenerMesInteligente(nuevoMes).toUpperCase();
-        if (window.localEditContext.meses.some(m => m.mes.toUpperCase() === nuevoMes)) { alert(`El mes ${nuevoMes} ya existe.`); return; }
+        let nuevoMes = document.getElementById('elNuevoMes').value.trim(); 
+        let nuevaFecha = document.getElementById('elNuevaFecha').value; 
+        if (!nuevoMes) return; 
+        
+        // Asumiendo que obtenerMesInteligente está definido más arriba
+        nuevoMes = obtenerMesInteligente(nuevoMes).toUpperCase();
+        
+        if (window.localEditContext.meses.some(m => m.mes.toUpperCase() === nuevoMes)) { 
+            alert(`El mes ${nuevoMes} ya existe en este local.`); 
+            return; 
+        }
         window.localEditContext.meses.push({ mes: nuevoMes, fechaInicio: nuevaFecha });
-        document.getElementById('elNuevoMes').value = ''; document.getElementById('elNuevaFecha').value = ''; window.renderizarMesesEditLocal();
+        document.getElementById('elNuevoMes').value = ''; 
+        document.getElementById('elNuevaFecha').value = ''; 
+        window.renderizarMesesEditLocal();
     };
 
-    window.eliminarMesEditLocal = function(index) { window.localEditContext.meses.splice(index, 1); window.renderizarMesesEditLocal(); };
+    window.eliminarMesEditLocal = function(index) { 
+        window.localEditContext.meses.splice(index, 1); 
+        window.renderizarMesesEditLocal(); 
+    };
 
+    // --- FUNCIÓN DE GUARDADO ---
     window.guardarModalEditarLocal = async function() {
         const cod = window.localEditContext.cod; if(!cod) return;
         const nombre = document.getElementById('elNombre').value.trim(); 
+        const direccion = document.getElementById('elDireccion').value.trim(); 
         const zonal = document.getElementById('elZonal').value.trim();
         const correo = document.getElementById('elCorreo').value.trim(); 
         const telefono = document.getElementById('elTelefono').value.trim();
         
         if(!nombre) { alert("El Nombre es obligatorio."); return; }
 
-        const btn = document.getElementById('btnGuardarEditLocal'); btn.innerText = "Guardando..."; btn.disabled = true;
+        const btn = document.getElementById('btnGuardarEditLocal'); 
+        btn.innerText = "Guardando..."; 
+        btn.disabled = true;
+        
         datosGlobales = datosGlobales.filter(r => r['CÓDIGO TIENDA'] !== cod);
 
         window.localEditContext.meses.forEach(m => {
             let fechaStr = m.fechaInicio ? m.fechaInicio.split('-').reverse().join('-') : '';
-            datosGlobales.push({ 'MES': m.mes, 'FECHA INICIO': fechaStr, 'CÓDIGO TIENDA': cod, 'TIENDA': nombre, 'JEFE ZONAL': zonal, 'CORREO ZONAL': correo, 'TELÉFONO ZONAL': telefono });
+            datosGlobales.push({ 'MES': m.mes, 'FECHA INICIO': fechaStr, 'CÓDIGO TIENDA': cod, 'TIENDA': nombre, 'DIRECCIÓN': direccion, 'JEFE ZONAL': zonal, 'CORREO ZONAL': correo, 'TELÉFONO ZONAL': telefono });
         });
 
         try {
             await setDoc(doc(db, "sistema", "datosGlobales"), { excelJson: JSON.stringify(datosGlobales) });
-            window.cerrarModalEditarLocal(); actualizarSelectorMeses(datosGlobales); window.renderizarTablaLocales(); procesarDatos();
-        } catch (error) { alert("Error al actualizar."); } finally { btn.innerText = "Guardar Cambios"; btn.disabled = false; }
-    };
-    
+            window.cerrarModalEditarLocal(); 
+            actualizarSelectorMeses(datosGlobales); 
+            window.renderizarTablaLocales(); 
+            procesarDatos();
+        } catch (error) { 
+            alert("Error al actualizar la base de datos."); 
+        } finally { 
+            btn.innerText = "Guardar Cambios"; 
+            btn.disabled = false; 
+        }
+    };    
     // EXPORTACIÓN A EXCEL
     window.exportarExcelCotizaciones = function() {
         if (!window.dashDatosFiltrados || window.dashDatosFiltrados.length === 0) { alert("No hay datos."); return; }
@@ -2022,43 +2315,320 @@ cotPendientesHTML += `<div style="margin-bottom:4px; font-weight:600; display:fl
             pdf.save(`Informe_Tecnico_${codTienda}_${nombreTienda.replace(/\s+/g, '_')}.pdf`);
         } catch (error) { alert("Hubo un error al compilar el informe."); }
     };
-// GENERACIÓN DE CORREO AUTOMÁTICO VÍA OUTLOOK + CLIPBOARD API (REPORTE EN CAJAS PARA OUTLOOK)
+// GENERACIÓN DE CORREO ESPECÍFICO PARA UN SOLO EQUIPO (TEXTOS ACTUALIZADOS Y ORDEN VERTICAL)
+    window.enviarCorreoEquipo = async function(eqIndex) {
+        try {
+            const eq = window.equiposContext.lista[eqIndex];
+            const codTienda = window.equiposContext.codTienda;
+            
+            // Buscar los datos de la sucursal en memoria
+            let nombreTienda = '', jefeZonal = '', correoZonal = '';
+            if (typeof datosGlobales !== 'undefined') {
+                const records = datosGlobales.filter(r => r['CÓDIGO TIENDA'] === codTienda);
+                if (records.length > 0) {
+                    const ultimoRegistro = records[records.length - 1]; // Toma el más reciente
+                    nombreTienda = ultimoRegistro['TIENDA'] || '';
+                    jefeZonal = ultimoRegistro['JEFE ZONAL'] || '';
+                    correoZonal = ultimoRegistro['CORREO ZONAL'] || '';
+                }
+            }
+
+            let colorEstado = eq.estado === 'Fuera de Servicio' ? '#dc2626' : (eq.estado === 'Con observaciones' ? '#d97706' : '#16a34a');
+            let iconoEstado = eq.estado === 'Fuera de Servicio' ? '🔴' : (eq.estado === 'Con observaciones' ? '🟡' : '🟢');
+            let saludo = jefeZonal && jefeZonal.trim() !== '' ? jefeZonal.split(' ')[0] : 'Equipo';
+
+            // --- CONSTRUIR HTML DEL CORREO INDIVIDUAL ---
+            let html = `<div style="font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; color: #334155; max-width: 800px; line-height: 1.6;">`;
+            
+            // Cabecera compacta
+            html += `<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
+                        <tr>
+                            <td width="30"><img src="https://app.fixeat.cl/assets/img/logo-maquipan.png" alt="Logo" style="height: 18px; display: block;"></td>
+                            <td style="color: #64748b; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Reporte Específico de Equipo</td>
+                        </tr>
+                     </table>`;
+
+            // Textos solicitados con salto de línea antes del cuadro
+            html += `<p style="margin: 0 0 5px 0;">Estimado <b>${saludo}</b>,</p>`;
+            html += `<p style="margin: 0 0 25px 0; color: #475569;">Adjuntamos la cotización y el estado técnico del siguiente equipo correspondiente al local <b style="color: #0f172a;">${codTienda} - ${nombreTienda}</b>.</p>`;
+
+            // Tarjeta del Equipo
+            html += `<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 15px; border: 1px solid #e2e8f0; border-radius: 4px; background-color: #ffffff; overflow: hidden;">`;
+            
+            // Header Equipo
+            html += `<tr>
+                        <td style="background-color: #f8fafc; padding: 10px 15px; border-bottom: 1px solid #e2e8f0;">
+                            <span style="font-size: 14px; color: #0f172a; font-weight: bold;">${iconoEstado} ${eq.nombre || 'S/N'}</span>
+                        </td>
+                     </tr>`;
+            
+            // Body Equipo (Información en lista vertical)
+            html += `<tr>
+                        <td style="padding: 15px;">
+                            <table width="100%" cellpadding="0" cellspacing="0" style="font-size: 12px; color: #475569; margin-bottom: ${eq.listaCotizaciones && eq.listaCotizaciones.length > 0 ? '15px' : '0'};">
+                                <tr>
+                                    <td width="70" style="color: #94a3b8; padding-bottom: 8px; vertical-align: top;">N° Serie:</td>
+                                    <td style="font-weight: 500; color: #0f172a; padding-bottom: 8px;">${eq.serie || 'N/A'}</td>
+                                </tr>
+                                <tr>
+                                    <td style="color: #94a3b8; padding-bottom: 8px; vertical-align: top;">Estado:</td>
+                                    <td style="font-weight: bold; color: ${colorEstado}; padding-bottom: 8px;">${eq.estado || 'Operativo'}</td>
+                                </tr>
+                                <tr>
+                                    <td style="color: #94a3b8; padding-bottom: 8px; vertical-align: top;">Notas:</td>
+                                    <td style="color: #334155; padding-bottom: 8px;">${eq.observaciones || '<i style="color:#cbd5e1;">Sin novedades</i>'}</td>
+                                </tr>
+                            </table>`;
+
+            let cotizacionesHTML = '';
+            let tieneCotPendiente = false;
+
+            if (eq.listaCotizaciones) {
+                eq.listaCotizaciones.forEach(cot => {
+                    if (cot.facturado) return; 
+                    
+                    if (cot.numero || cot.detalle || cot.monto) {
+                        if (!cot.tieneOC && !cot.realizado) tieneCotPendiente = true;
+
+                        let numStr = cot.numero || 'S/N';
+                        let montoFormateado = '-';
+                        if (cot.monto && cot.monto !== '-') {
+                            montoFormateado = (typeof cot.monto === 'string' && cot.monto.includes('$')) ? cot.monto : window.formatearCLP(cot.monto);
+                        }
+
+                        let estadoCot = "Pend. OC";
+                        let colorCot = "#d97706"; 
+                        
+                        if (cot.realizado) { estadoCot = "Ejecutado"; colorCot = "#2563eb"; } 
+                        else if (cot.tieneOC) { estadoCot = "Con OC"; colorCot = "#16a34a"; } 
+
+                        let linkCotizacion = `N° ${numStr}`;
+                        if (cot.archivoUrl) {
+                            linkCotizacion = `<a href="${cot.archivoUrl}" target="_blank" style="color: #2563eb; font-weight: 500; text-decoration: none;" title="Ver PDF Adjunto">N° ${numStr} 📄</a>`;
+                        }
+
+                        cotizacionesHTML += `
+                        <tr>
+                            <td style="border-bottom: 1px solid #f1f5f9; padding: 6px 0; font-weight: 500;">${linkCotizacion}</td>
+                            <td style="border-bottom: 1px solid #f1f5f9; padding: 6px 0; color: #0f172a;">${montoFormateado}</td>
+                            <td style="border-bottom: 1px solid #f1f5f9; padding: 6px 0; color: ${colorCot}; font-size: 11px; font-weight: bold;">${estadoCot}</td>
+                            <td style="border-bottom: 1px solid #f1f5f9; padding: 6px 0; color: #64748b;">${cot.detalle || '<i style="color:#cbd5e1;">Sin detalle</i>'}</td>
+                        </tr>`;
+                    }
+                });
+            }
+
+            if (cotizacionesHTML !== '') {
+                html += `<table width="100%" cellpadding="0" cellspacing="0" style="font-size: 12px; text-align: left; border-top: 1px dashed #e2e8f0; padding-top: 10px;">
+                            <tr>
+                                <th style="padding-bottom: 6px; width: 85px; color: #94a3b8; font-weight: 600;">Cotización</th>
+                                <th style="padding-bottom: 6px; width: 80px; color: #94a3b8; font-weight: 600;">Monto</th>
+                                <th style="padding-bottom: 6px; width: 80px; color: #94a3b8; font-weight: 600;">Estado</th>
+                                <th style="padding-bottom: 6px; color: #94a3b8; font-weight: 600;">Repuestos</th>
+                            </tr>
+                            ${cotizacionesHTML}
+                         </table>`;
+            } else {
+                html += `<div style="padding: 10px; background-color: #f8fafc; border: 1px dashed #cbd5e1; color: #64748b; font-style: italic; text-align: center; border-radius: 4px;">Este equipo no tiene cotizaciones pendientes o en ejecución actualmente.</div>`;
+            }
+            
+            html += `   </td>
+                     </tr>
+                  </table>`;
+
+            // Despedida solicitada
+            html += `<p style="margin-top: 25px; margin-bottom: 5px; color: #64748b;">Quedamos a su disposición por cualquier consulta.</p>`;
+            html += `<p style="margin: 0; color: #0f172a; font-weight: bold;">Servicio Técnico Maquipan.</p>`;
+            html += `</div>`; 
+
+            // Copiar al portapapeles
+            const blobHtml = new Blob([html], { type: "text/html" });
+            const blobText = new Blob(["Por favor, pega el contenido aquí (Ctrl+V)"], { type: "text/plain" });
+            const data = [new ClipboardItem({ "text/html": blobHtml, "text/plain": blobText })];
+            await navigator.clipboard.write(data);
+
+            const correoEjecutiva = 'kcarrasco@maquipan.cl';
+            
+            // Asunto Automático Dinámico
+            let asuntoTexto = tieneCotPendiente ? `⚠️ Aprobación de Cotización` : `Reporte Técnico Equipo`;
+            const asunto = encodeURIComponent(`${asuntoTexto} - ${eq.nombre} - Local ${codTienda} ${nombreTienda}`);
+            
+            const body = encodeURIComponent(`Presiona Pegar (Ctrl+V o Clic derecho -> Pegar) para insertar la cotización y detalles del equipo aquí...`);
+            
+            alert("✅ ¡Reporte individual copiado!\n\nSe abrirá Outlook. Solo presiona 'Pegar' (Ctrl + V).");
+            window.location.href = `mailto:${correoZonal}?cc=${correoEjecutiva}&subject=${asunto}&body=${body}`;
+
+        } catch (error) {
+            console.error("Error al generar correo individual:", error);
+            alert("No se pudo copiar el formato. Verifica los permisos de portapapeles en tu navegador.");
+        }
+    };
+// GENERACIÓN DE CORREO AUTOMÁTICO VÍA OUTLOOK + CLIPBOARD API (REPORTE ORDENADO Y COMPACTO)
+    // GENERACIÓN DE CORREO AUTOMÁTICO VÍA OUTLOOK + CLIPBOARD API (DISEÑO MINIMALISTA CORPORATIVO)
     window.enviarCorreoLocal = async function(codTienda, nombreTienda, jefeZonal, correoZonal = '') {
         try {
+            // 1. Consultar equipos y cotizaciones
             const docRef = doc(db, "equipos_locales", codTienda);
             const docSnap = await getDoc(docRef);
 
-            // 1. CONSTRUIR EL HTML PROFESIONAL
-            let html = `<div style="font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: #334155; max-width: 850px; line-height: 1.6;">`;
-            html += `<p style="margin-bottom: 20px;">Estimados,</p>`;
-            html += `<p style="margin-bottom: 40px;">A continuación, se detalla el reporte de mantenimiento y cotizaciones del siguiente local:</p>`;
+            // 2. Consultar datos de la ficha del mes
+            let mesActual = document.getElementById('monthSelect') ? document.getElementById('monthSelect').value : '';
+            if (!mesActual && typeof datosGlobales !== 'undefined') {
+                const mesesLocal = datosGlobales.filter(r => r['CÓDIGO TIENDA'] === codTienda).map(r => r.MES).filter(Boolean);
+                mesActual = mesesLocal[mesesLocal.length - 1] || '';
+            }
+
+            let datosEstado = {};
+            if (mesActual) {
+                const estadoSnap = await getDoc(doc(db, `estados_${mesActual}`, codTienda));
+                if (estadoSnap.exists()) datosEstado = estadoSnap.data();
+            }
+
+            // 3. OBTENER Y ORDENAR EQUIPOS (PRIORIDAD: Fuera de Servicio -> Con observaciones -> Operativo)
+            let equipos = docSnap.exists() && docSnap.data().Equipos ? docSnap.data().Equipos : [];
             
-            // Encabezado del Local SIN Responsable Zonal
-            html += `<div style="border-left: 5px solid #3b82f6; padding: 20px 25px; background-color: #f8fafc; border-radius: 6px;">`;
-            html += `<h2 style="margin: 0; color: #0f172a; font-size: 22px;">🏬 Local: ${codTienda} - ${nombreTienda}</h2>`;
-            html += `</div>`;
+            const prioridadEstado = {
+                'Fuera de Servicio': 1,
+                'Con observaciones': 2,
+                'Operativo': 3
+            };
 
-            // SALTO DE 2 ESPACIOS ENTRE EL LOCAL Y EL PRIMER EQUIPO
-            html += `<br><br>`;
+            equipos.sort((a, b) => {
+                let prioA = prioridadEstado[a.estado] || 4;
+                let prioB = prioridadEstado[b.estado] || 4;
+                return prioA - prioB;
+            });
 
-            if (docSnap.exists() && docSnap.data().Equipos && docSnap.data().Equipos.length > 0) {
-                let equipos = docSnap.data().Equipos;
+            // 4. CALCULAR MÉTRICAS PARA EL RESUMEN EJECUTIVO
+            let eqOperativos = 0, eqObs = 0, eqFS = 0, cotPendientesOC = 0;
+            
+            equipos.forEach(eq => {
+                if (eq.estado === 'Operativo') eqOperativos++;
+                else if (eq.estado === 'Con observaciones') eqObs++;
+                else if (eq.estado === 'Fuera de Servicio') eqFS++;
+
+                if (eq.listaCotizaciones) {
+                    eq.listaCotizaciones.forEach(cot => {
+                        if (!cot.tieneOC && !cot.realizado && cot.numero) {
+                            cotPendientesOC++;
+                        }
+                    });
+                }
+            });
+
+            // --- 5. CONSTRUIR EL HTML (DISEÑO CLEAN & MINIMAL) ---
+            let html = `<div style="font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; color: #334155; max-width: 800px; line-height: 1.6;">`;
+            
+            // Cabecera compacta y moderna
+            html += `<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
+                        <tr>
+                            <td width="30"><img src="https://app.fixeat.cl/assets/img/logo-maquipan.png" alt="Logo" style="height: 18px; display: block;"></td>
+                            <td style="color: #64748b; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Reporte Técnico de Servicio</td>
+                        </tr>
+                     </table>`;
+
+            // Saludo y Local
+            let saludo = jefeZonal && jefeZonal.trim() !== '' ? jefeZonal.split(' ')[0] : 'Equipo';
+            html += `<p style="margin: 0 0 5px 0;">Estimado/a <b>${saludo}</b>,</p>`;
+            html += `<p style="margin: 0 0 20px 0; color: #475569;">Se adjunta el reporte de mantenimiento y estado de equipos correspondiente al local: <b style="color: #0f172a;">${codTienda} - ${nombreTienda}</b> <span style="color: #94a3b8; font-size: 12px;">(${mesActual || 'S/N'})</span>.</p>`;
+
+            // --- RESUMEN EJECUTIVO (KPIs MINIMALISTAS CON LÍNEA SUPERIOR) ---
+            html += `<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 25px;">
+                        <tr>
+                            <!-- Operativos -->
+                            <td width="32%" style="background: #ffffff; border: 1px solid #e2e8f0; border-top: 3px solid #10b981; border-radius: 4px; padding: 12px; text-align: center;">
+                                <div style="font-size: 22px; font-weight: bold; color: #0f172a; line-height: 1;">${eqOperativos}</div>
+                                <div style="font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 5px;">Operativos</div>
+                            </td>
+                            <td width="2%"></td>
+                            <!-- Fuera de Servicio -->
+                            <td width="32%" style="background: #ffffff; border: 1px solid #e2e8f0; border-top: 3px solid #ef4444; border-radius: 4px; padding: 12px; text-align: center;">
+                                <div style="font-size: 22px; font-weight: bold; color: #0f172a; line-height: 1;">${eqFS}</div>
+                                <div style="font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 5px;">Fuera de Servicio</div>
+                            </td>
+                            <td width="2%"></td>
+                            <!-- Cot. Pendientes -->
+                            <td width="32%" style="background: #ffffff; border: 1px solid #e2e8f0; border-top: 3px solid #f59e0b; border-radius: 4px; padding: 12px; text-align: center;">
+                                <div style="font-size: 22px; font-weight: bold; color: #0f172a; line-height: 1;">${cotPendientesOC}</div>
+                                <div style="font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 5px;">Pendientes OC</div>
+                            </td>
+                        </tr>
+                     </table>`;
+
+            // --- DOCUMENTACIÓN (Links e Imágenes - Diseño más sutil) ---
+            let tieneDoc = (datosEstado.LinksFichas && datosEstado.LinksFichas.length > 0) || (datosEstado.Imagenes && datosEstado.Imagenes.length > 0);
+            
+            if (tieneDoc) {
+                html += `<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 25px; border: 1px solid #e2e8f0; border-radius: 4px; background: #ffffff;">
+                            <tr>
+                                <td style="background-color: #f8fafc; padding: 10px 15px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #334155; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    📎 Documentación Adjunta
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 15px;">`;
                 
-                equipos.forEach((eq, index) => {
-                    let colorEstado = eq.estado === 'Fuera de Servicio' ? '#ef4444' : (eq.estado === 'Con observaciones' ? '#d97706' : '#10b981');
+                // Links Fichas Físicas
+                if (datosEstado.LinksFichas && datosEstado.LinksFichas.length > 0) {
+                    html += `<ul style="margin: 0 0 10px 0; padding-left: 20px;">`;
+                    datosEstado.LinksFichas.forEach(f => {
+                        if (f.url) html += `<li style="margin-bottom: 4px;"><a href="${f.url}" target="_blank" style="color: #2563eb; font-weight: 500; text-decoration: none;">${f.nombre || 'Ficha de Servicio'}</a></li>`;
+                    });
+                    html += `</ul>`;
+                }
+
+                // Evidencia Fotográfica (Más estilizada)
+                if (datosEstado.Imagenes && datosEstado.Imagenes.length > 0) {
+                    html += `<div style="font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 8px; text-transform: uppercase;">Evidencia Fotográfica:</div>`;
+                    html += `<table width="100%" cellpadding="4" cellspacing="0"><tr>`;
+                    datosEstado.Imagenes.forEach((img, idx) => {
+                        if (idx > 0 && idx % 5 === 0) html += `</tr><tr>`; 
+                        html += `
+                        <td style="vertical-align: top; width: 20%;">
+                            <a href="${img.url}" target="_blank" style="text-decoration: none;">
+                                <img src="${img.url}" alt="Foto" style="width: 70px; height: 70px; object-fit: cover; border-radius: 4px; border: 1px solid #cbd5e1; display: block;">
+                            </a>
+                        </td>`;
+                    });
+                    html += `</tr></table>`;
+                }
+                html += `       </td>
+                            </tr>
+                        </table>`;
+            }
+
+            // --- DETALLE DE EQUIPOS (Tarjetas limpias, sin bordes pesados) ---
+            if (equipos.length > 0) {
+                html += `<div style="font-weight: 600; color: #334155; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">Detalle de Equipamiento</div>`;
+                
+                equipos.forEach((eq) => {
+                    let colorEstado = eq.estado === 'Fuera de Servicio' ? '#dc2626' : (eq.estado === 'Con observaciones' ? '#d97706' : '#16a34a');
+                    let iconoEstado = eq.estado === 'Fuera de Servicio' ? '🔴' : (eq.estado === 'Con observaciones' ? '🟡' : '🟢');
                     
-                    // >>> CAMBIO CLAVE: Usamos <table> para obligar a Outlook a dibujar el CUADRO del equipo <<<
-                    html += `<table width="100%" cellpadding="25" cellspacing="0" style="border: 2px solid #cbd5e1; background-color: #ffffff; border-collapse: collapse;">`;
-                    html += `<tr><td>`;
+                    html += `<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 15px; border: 1px solid #e2e8f0; border-radius: 4px; background-color: #ffffff; overflow: hidden;">`;
                     
-                    html += `<h3 style="margin: 0 0 25px 0; color: #0f172a; font-size: 18px; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px;">🔧 Equipo: ${eq.nombre || 'S/N'}</h3>`;
+                    // Header del equipo
+                    html += `<tr>
+                                <td style="background-color: #f8fafc; padding: 10px 15px; border-bottom: 1px solid #e2e8f0;">
+                                    <span style="font-size: 14px; color: #0f172a; font-weight: bold;">${iconoEstado} ${eq.nombre || 'S/N'}</span>
+                                </td>
+                             </tr>`;
                     
-                    // Tabla de información del equipo
-                    html += `<table style="width: 100%; margin-bottom: 35px; font-size: 14px; text-align: left; border-collapse: collapse;">`;
-                    html += `<tr><td style="width: 120px; font-weight: bold; color: #64748b; padding-bottom: 15px;">N° Serie:</td><td style="padding-bottom: 15px;">${eq.serie || 'N/A'}</td></tr>`;
-                    html += `<tr><td style="font-weight: bold; color: #64748b; padding-bottom: 15px;">Estado:</td><td style="font-weight: bold; color: ${colorEstado}; padding-bottom: 15px; font-size: 15px;">${eq.estado || 'Operativo'}</td></tr>`;
-                    html += `<tr><td style="font-weight: bold; color: #64748b; padding-bottom: 15px;">Notas:</td><td style="padding-bottom: 15px;">${eq.observaciones || 'Sin observaciones'}</td></tr>`;
-                    html += `</table>`;
+                    // Body del equipo
+                    html += `<tr>
+                                <td style="padding: 15px;">
+                                    <table width="100%" cellpadding="0" cellspacing="0" style="font-size: 12px; color: #475569; margin-bottom: ${eq.listaCotizaciones && eq.listaCotizaciones.length > 0 ? '15px' : '0'};">
+                                        <tr>
+                                            <td width="70" style="color: #94a3b8; padding-bottom: 6px;">N° Serie:</td>
+                                            <td style="font-weight: 500; color: #0f172a; padding-bottom: 6px;">${eq.serie || 'N/A'}</td>
+                                            <td width="50" style="color: #94a3b8; padding-bottom: 6px;">Estado:</td>
+                                            <td style="font-weight: bold; color: ${colorEstado}; padding-bottom: 6px;">${eq.estado || 'Operativo'}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #94a3b8; vertical-align: top;">Notas:</td>
+                                            <td colspan="3" style="color: #334155;">${eq.observaciones || '<i style="color:#cbd5e1;">Sin novedades</i>'}</td>
+                                        </tr>
+                                    </table>`;
 
                     let cotizacionesHTML = '';
                     if (eq.listaCotizaciones) {
@@ -2068,95 +2638,83 @@ cotPendientesHTML += `<div style="margin-bottom:4px; font-weight:600; display:fl
                             if (cot.numero || cot.detalle || cot.monto) {
                                 let numStr = cot.numero || 'S/N';
                                 let montoStr = (cot.monto && cot.monto !== '-') ? cot.monto : '-';
-                                let estadoCot = "Pendiente OC";
-                                if (cot.realizado) estadoCot = "Ejecutado"; 
-                                else if (cot.tieneOC) estadoCot = "Con OC";
+                                let estadoCot = "Pend. OC";
+                                let colorCot = "#d97706"; 
+                                
+                                if (cot.realizado) { estadoCot = "Ejecutado"; colorCot = "#2563eb"; } 
+                                else if (cot.tieneOC) { estadoCot = "Con OC"; colorCot = "#16a34a"; } 
 
                                 let linkCotizacion = `N° ${numStr}`;
                                 if (cot.archivoUrl) {
-                                    linkCotizacion = `<a href="${cot.archivoUrl}" target="_blank" style="color: #2563eb; font-weight: bold; text-decoration: none; border-bottom: 1px solid #2563eb; padding-bottom: 2px;">📄 N° ${numStr}</a>`;
+                                    linkCotizacion = `<a href="${cot.archivoUrl}" target="_blank" style="color: #2563eb; font-weight: 500; text-decoration: none;" title="Ver PDF Adjunto">N° ${numStr} 📄</a>`;
                                 }
 
                                 cotizacionesHTML += `
                                 <tr>
-                                    <td style="border: 1px solid #e2e8f0; padding: 14px 16px;">${linkCotizacion}</td>
-                                    <td style="border: 1px solid #e2e8f0; padding: 14px 16px; font-weight: bold; color: #0f172a;">${montoStr}</td>
-                                    <td style="border: 1px solid #e2e8f0; padding: 14px 16px; color: #475569;">${estadoCot}</td>
-                                    <td style="border: 1px solid #e2e8f0; padding: 14px 16px; color: #475569;">${cot.detalle || 'Sin repuestos / detalle'}</td>
+                                    <td style="border-bottom: 1px solid #f1f5f9; padding: 6px 0; font-weight: 500;">${linkCotizacion}</td>
+                                    <td style="border-bottom: 1px solid #f1f5f9; padding: 6px 0; color: #0f172a;">${montoStr}</td>
+                                    <td style="border-bottom: 1px solid #f1f5f9; padding: 6px 0; color: ${colorCot}; font-size: 11px; font-weight: bold;">${estadoCot}</td>
+                                    <td style="border-bottom: 1px solid #f1f5f9; padding: 6px 0; color: #64748b;">${cot.detalle || '<i style="color:#cbd5e1;">Sin detalle</i>'}</td>
                                 </tr>`;
                             }
                         });
                     }
 
                     if (cotizacionesHTML !== '') {
-                        html += `<h4 style="margin: 0 0 15px 0; color: #334155; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Detalle de Cotizaciones</h4>`;
-                        html += `<table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">`;
-                        html += `<tr style="background-color: #f8fafc; color: #475569;">
-                                    <th style="border: 1px solid #e2e8f0; padding: 14px 16px; width: 110px;">Cotización</th>
-                                    <th style="border: 1px solid #e2e8f0; padding: 14px 16px; width: 100px;">Monto</th>
-                                    <th style="border: 1px solid #e2e8f0; padding: 14px 16px; width: 110px;">Estado</th>
-                                    <th style="border: 1px solid #e2e8f0; padding: 14px 16px;">Repuestos / Notas</th>
-                                 </tr>`;
-                        html += cotizacionesHTML;
-                        html += `</table>`;
-                    } else {
-                        html += `<div style="background-color: #f8fafc; padding: 15px 20px; border-left: 4px solid #cbd5e1; font-size: 14px; color: #64748b; font-style: italic; border-radius: 4px;">Sin cotizaciones pendientes o en ejecución.</div>`;
+                        // Tabla de cotizaciones limpia (solo líneas horizontales sutiles)
+                        html += `<table width="100%" cellpadding="0" cellspacing="0" style="font-size: 12px; text-align: left; border-top: 1px dashed #e2e8f0; padding-top: 10px;">
+                                    <tr>
+                                        <th style="padding-bottom: 6px; width: 85px; color: #94a3b8; font-weight: 600;">Cotización</th>
+                                        <th style="padding-bottom: 6px; width: 80px; color: #94a3b8; font-weight: 600;">Monto</th>
+                                        <th style="padding-bottom: 6px; width: 80px; color: #94a3b8; font-weight: 600;">Estado</th>
+                                        <th style="padding-bottom: 6px; color: #94a3b8; font-weight: 600;">Repuestos</th>
+                                    </tr>
+                                    ${cotizacionesHTML}
+                                 </table>`;
                     }
                     
-                    // Cerramos la tabla que envuelve al equipo
-                    html += `</td></tr></table>`;
-
-                    // SALTO DE 2 ESPACIOS ENTRE UN EQUIPO Y EL SIGUIENTE
-                    if (index < equipos.length - 1) {
-                        html += `<br><br>`;
-                    }
+                    html += `   </td>
+                             </tr>
+                          </table>`;
                 });
-            } else {
-                html += `<div style="padding: 20px; background-color: #fef2f2; border-left: 4px solid #ef4444; color: #991b1b; font-weight: bold; margin-bottom: 40px;">No hay información de equipos guardada para este local en la nube.</div>`;
             }
 
-            // SALTO DE 2 ESPACIOS ANTES DE LA DESPEDIDA
-            html += `<br><br>`;
-            html += `<p style="margin-top: 20px; margin-bottom: 10px;">Quedo atento a cualquier consulta.</p><p style="margin: 0;">Saludos cordiales.</p>`;
+            // Despedida
+            html += `<p style="margin-top: 20px; margin-bottom: 5px; color: #64748b;">Quedamos a su disposición por cualquier consulta.</p>`;
+            html += `<p style="margin: 0; color: #0f172a; font-weight: bold;">Supervisión Técnica Nacional.</p>`;
             html += `</div>`; 
 
-            // 2. COPIAR EL HTML AL PORTAPAPELES
+            // 6. Copiar al portapapeles
             const blobHtml = new Blob([html], { type: "text/html" });
-            const blobText = new Blob(["Pega el contenido aquí (Ctrl+V)"], { type: "text/plain" });
+            const blobText = new Blob(["Por favor, pega el contenido aquí (Ctrl+V)"], { type: "text/plain" });
             const data = [new ClipboardItem({ "text/html": blobHtml, "text/plain": blobText })];
             await navigator.clipboard.write(data);
 
-            // --- LÓGICA INTELIGENTE PARA ENCONTRAR EL CORREO ---
+            // 7. Configurar Destinatarios (Zonal + Ejecutiva en CC)
             let correoDestino = '';
-            
-            // A) Si el botón mandó el correo (Ej: desde la pestaña Locales), lo usamos.
             if (correoZonal && correoZonal.trim() !== '') {
                 correoDestino = correoZonal.trim();
             } else {
-                // B) Si el botón no lo mandó (Ej: desde el Panel Principal), buscamos el dato más nuevo
                 const records = datosGlobales.filter(r => r['CÓDIGO TIENDA'] === codTienda);
                 const registrosNuevos = [...records].reverse();
                 const correoEncontrado = registrosNuevos.map(r => r['CORREO ZONAL']).find(v => v && String(v).trim() !== '');
-                
-                if (correoEncontrado) {
-                    correoDestino = correoEncontrado.trim();
-                }
+                if (correoEncontrado) correoDestino = correoEncontrado.trim();
             }
 
-            // Correo de copia fijo
             const correoEjecutiva = 'kcarrasco@maquipan.cl';
-
-            // 3. AVISAR AL USUARIO Y ABRIR OUTLOOK
-            alert("✅ ¡Reporte Profesional generado y copiado!\n\nSe abrirá Outlook. Solo debes presionar 'Pegar' (Ctrl + V) en el cuerpo del correo.");
             
-            const asunto = encodeURIComponent(`Reporte Técnico y Cotizaciones - Local ${codTienda} ${nombreTienda}`);
-            const body = encodeURIComponent(`Presiona Pegar (Ctrl+V o Clic derecho -> Pegar) para insertar el reporte interactivo aquí...`);
+            // Asunto Inteligente
+            let iconoAsunto = (eqFS > 0 || cotPendientesOC > 0) ? '⚠️ ' : '✅ ';
+            const asunto = encodeURIComponent(`${iconoAsunto}Reporte Técnico y Estado de Equipos - Local ${codTienda} ${nombreTienda}`);
             
+            const body = encodeURIComponent(`Presiona Pegar (Ctrl+V o Clic derecho -> Pegar) para insertar el reporte interactivo con sus imágenes aquí...`);
+            
+            alert("✅ ¡Reporte copiado!\n\nSe abrirá Outlook. Solo presiona 'Pegar' (Ctrl + V) en el cuerpo del correo.");
             window.location.href = `mailto:${correoDestino}?cc=${correoEjecutiva}&subject=${asunto}&body=${body}`;
 
         } catch (error) {
             console.error("Error al generar correo:", error);
-            alert("No se pudo copiar el formato. Asegúrate de hacer clic en el botón y permitir el acceso al portapapeles en tu navegador.");
+            alert("No se pudo copiar el formato. Verifica los permisos de portapapeles de tu navegador.");
         }
     };
 </script>
